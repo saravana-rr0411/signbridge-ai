@@ -39,14 +39,11 @@ export function renderSignTranscript(
       <!-- DUAL DISPLAY ARCHITECTURE: Clear separation between ML model & Phrase layer -->
       <div class="grid grid-cols-1 sm:grid-cols-12 gap-2">
         <!-- (A) ML RECOGNIZED SIGNS -->
-        <div class="sm:col-span-5 p-2.5 bg-surface-container-lowest rounded-lg border border-outline-variant/40 flex flex-col justify-between">
-          <div class="flex items-center justify-between mb-1">
+        <div class="sm:col-span-5 p-2 bg-surface-container-lowest rounded-lg border border-outline-variant/40 flex flex-col justify-between">
+          <div class="flex items-center justify-between mb-0.5">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-slate-600 flex items-center gap-1">
               <span class="material-symbols-outlined text-primary text-[14px]">sign_language</span>
               Recognized Signs (ML Model)
-            </span>
-            <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-slate-100 text-slate-600 font-bold">
-              ML Model
             </span>
           </div>
           <div class="flex items-center my-0.5">
@@ -54,25 +51,24 @@ export function renderSignTranscript(
               ${rawSign}
             </span>
           </div>
-          <span class="text-[9px] text-slate-400 font-medium">Actual ML-recognized sign sequence</span>
         </div>
 
         <!-- (B) CONTEXTUAL MESSAGE (PHRASE LAYER) -->
-        <div class="sm:col-span-7 p-2.5 bg-white rounded-lg border-2 border-primary/20 flex flex-col justify-between shadow-2xs">
-          <div class="flex items-center justify-between mb-1">
+        <div class="sm:col-span-7 p-2 bg-white rounded-lg border-2 border-primary/20 flex flex-col justify-between shadow-2xs">
+          <div class="flex items-center justify-between mb-0.5">
             <span class="text-[10px] font-extrabold uppercase tracking-wider text-primary flex items-center gap-1">
               <span class="material-symbols-outlined text-secondary text-[14px]">translate</span>
               Contextual Message (Phrase Layer)
             </span>
-            <span class="text-[9px] font-mono px-1.5 py-0.2 rounded bg-primary/10 text-primary font-bold">
-              Phrase Layer
+            <span id="${id}-tts-indicator" class="hidden text-[10px] font-bold text-emerald-600 flex items-center gap-0.5 animate-pulse">
+              <span class="material-symbols-outlined text-[13px]">volume_up</span>
+              <span>Speaking</span>
             </span>
           </div>
           <p class="text-sm lg:text-base font-extrabold text-primary leading-snug break-words" id="${id}">
             "${transcriptText}"
             <span class="inline-block w-1.5 h-4 bg-secondary ml-1 animate-pulse align-middle"></span>
           </p>
-          <span class="text-[9px] text-slate-500 font-medium">Deterministic hospital-context sentence</span>
         </div>
       </div>
     </div>

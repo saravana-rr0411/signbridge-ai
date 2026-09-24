@@ -1,0 +1,61 @@
+const ASL_MORNING = (ref) => {
+  let animations = [];
+  animations.push(["mixamorigLeftArm", "rotation", "x", -Math.PI / 4, "-"]);
+  animations.push(["mixamorigLeftArm", "rotation", "z", -Math.PI / 3.5, "+"]);
+  animations.push(["mixamorigLeftForeArm", "rotation", "z", -Math.PI / 3, "-"]);
+  animations.push(["mixamorigLeftForeArm", "rotation", "y", -Math.PI / 2, "+"]);
+  animations.push(["mixamorigLeftHand", "rotation", "x", 0, "+"]);
+  animations.push(["mixamorigLeftHand", "rotation", "y", -Math.PI / 6, "-"]);
+  animations.push(["mixamorigLeftHand", "rotation", "z", -Math.PI / 6, "-"]);
+  animations.push(["mixamorigRightArm", "rotation", "x", -Math.PI / 5, "-"]);
+  animations.push(["mixamorigRightArm", "rotation", "z", Math.PI / 4, "-"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "z", Math.PI / 4.5, "+"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "y", Math.PI / 1.5, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "x", Math.PI / 8, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "y", -Math.PI / 6, "-"]);
+  animations.push(["mixamorigRightHand", "rotation", "z", 0, "+"]);
+  animations.push(["mixamorigNeck", "rotation", "x", Math.PI / 10, "+"]);
+  ref.animations.push(animations);
+  animations = [];
+  animations.push(["mixamorigRightArm", "rotation", "x", -Math.PI / 4.5, "-"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "z", Math.PI / 3.5, "+"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "y", Math.PI / 1.8, "-"]);
+  animations.push(["mixamorigRightHand", "rotation", "x", Math.PI / 6, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "y", -Math.PI / 8, "+"]);
+  ref.animations.push(animations);
+  animations = [];
+  animations.push(["mixamorigRightArm", "rotation", "x", -Math.PI / 4, "+"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "z", Math.PI / 2.6, "+"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "y", Math.PI / 2.2, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "x", Math.PI / 5, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "y", -Math.PI / 6, "-"]);
+  animations.push(["mixamorigNeck", "rotation", "x", Math.PI / 9, "-"]);
+  ref.animations.push(animations);
+  animations = [];
+  animations.push(["mixamorigRightHand", "rotation", "x", Math.PI / 5, "+"]);
+  ref.animations.push(animations);
+  animations = [];
+  animations.push(["mixamorigLeftArm", "rotation", "x", 0, "+"]);
+  animations.push(["mixamorigLeftArm", "rotation", "z", -Math.PI / 3, "-"]);
+  animations.push(["mixamorigLeftForeArm", "rotation", "z", 0, "+"]);
+  animations.push(["mixamorigLeftForeArm", "rotation", "y", -Math.PI / 1.5, "-"]);
+  animations.push(["mixamorigLeftHand", "rotation", "x", 0, "+"]);
+  animations.push(["mixamorigLeftHand", "rotation", "y", 0, "+"]);
+  animations.push(["mixamorigLeftHand", "rotation", "z", 0, "+"]);
+  animations.push(["mixamorigRightArm", "rotation", "x", 0, "+"]);
+  animations.push(["mixamorigRightArm", "rotation", "z", Math.PI / 3, "+"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "z", 0, "-"]);
+  animations.push(["mixamorigRightForeArm", "rotation", "y", Math.PI / 1.5, "-"]);
+  animations.push(["mixamorigRightHand", "rotation", "x", 0, "-"]);
+  animations.push(["mixamorigRightHand", "rotation", "y", 0, "+"]);
+  animations.push(["mixamorigRightHand", "rotation", "z", 0, "-"]);
+  animations.push(["mixamorigNeck", "rotation", "x", Math.PI / 12, "+"]);
+  ref.animations.push(animations);
+  if (ref.pending === false && typeof ref.animate === "function") {
+    ref.pending = true;
+    ref.animate();
+  }
+};
+export {
+  ASL_MORNING
+};

@@ -1,31 +1,61 @@
-// Sign Language Animation Service with Automatic 2X Playback & Turn-Taking Trigger
+// Sign Language Animation Service with Procedural 3D Playback & Turn-Taking Trigger
 import { communicationService } from './communicationService.js';
+import { getPhraseDuration } from './signAnimation/engine.js';
+import { SIGNING_MODES, getSignConfig } from './signAnimation/signConfig.js';
+
+const safeRequestAnim = typeof requestAnimationFrame === 'function'
+  ? requestAnimationFrame
+  : (cb) => setTimeout(cb, 16);
+
+const safeCancelAnim = typeof cancelAnimationFrame === 'function'
+  ? cancelAnimationFrame
+  : (id) => clearTimeout(id);
 
 class SignAnimationService {
   constructor() {
     this.listeners = new Set();
-    this.singleCycleDuration = 4000; // 4s per playback pass
-    this.timerId = null;
-    this.startTime = 0;
+    this.viewer = null;
     this.animationFrame = null;
+    this.startTime = 0;
+    this.duration = 3000;
 
-    // Default active animation
+    // Default active animation state
     this.state = {
       text: 'Please wait here. The doctor will examine you shortly.',
-      assetUrl: './assets/images/ai-avatar.jpg',
+      mode: SIGNING_MODES.FINGERSPELLING,
+      signSequence: [],
       cycle: 1,
       maxCycles: 2,
       isPlaying: false,
       completed: true,
       cameraResponseComplete: true,
       progressPercent: 100,
-      timeDisplay: '00:04 / 00:04'
+      timeDisplay: '00:03 / 00:03',
+      activeToken: '',
+      isDirectWord: false,
+      supported: true
     };
+  }
 
-    // Asset mappings for messages/presets
-    this.assetMap = {
-      default: './assets/images/ai-avatar.jpg'
-    };
+  attachViewer(viewerInstance) {
+    this.viewer = viewerInstance;
+    if (this.viewer) {
+      this.viewer.onProgressCallback = (progress) => {
+        this.updateProgress(progress);
+      };
+      this.viewer.onTokenChangeCallback = (info) => {
+        this.state.activeToken = info.token || '';
+        this.state.isDirectWord = Boolean(info.isDirectWord);
+        this.notify();
+      };
+      this.viewer.onCompletedCallback = () => {
+        this.finishPlayback();
+      };
+    }
+  }
+
+  detachViewer() {
+    this.viewer = null;
   }
 
   notify() {
@@ -42,7 +72,9 @@ class SignAnimationService {
       isPlaying: this.state.isPlaying,
       completed: this.state.completed,
       cameraResponseComplete: this.state.cameraResponseComplete,
-      text: this.state.text
+      text: this.state.text,
+      mode: this.state.mode,
+      activeToken: this.state.activeToken
     });
   }
 
@@ -56,71 +88,96 @@ class SignAnimationService {
     return this.state;
   }
 
-  // Play animation for an incoming Admin message
-  playAnimationForMessage(text) {
-    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
-
-    this.state.text = text;
-    this.state.cycle = 1;
-    this.state.isPlaying = true;
-    this.state.completed = false;
-    this.state.cameraResponseComplete = false;
-    this.state.progressPercent = 0;
-    this.startTime = Date.now();
-
-    // Camera becomes neutral during playback
-    communicationService.emit('CAMERA_TURN_ACTIVE', { active: false });
-
+  updateProgress(progressRatio) {
+    const pct = Math.min(100, Math.max(0, Math.round(progressRatio * 100)));
+    if (pct === this.state.progressPercent) return;
+    const totalSec = Math.round(this.duration / 1000);
+    const curSec = Math.min(totalSec, Math.round((pct / 100) * totalSec));
+    this.state.progressPercent = pct;
+    this.state.timeDisplay = `00:0${curSec} / 00:0${totalSec}`;
     this.notify();
-    this.runCycleLoop();
   }
 
-  runCycleLoop() {
-    const elapsed = Date.now() - this.startTime;
-    const progress = Math.min((elapsed / this.singleCycleDuration) * 100, 100);
-    const sec = Math.min(Math.floor(elapsed / 1000), 4);
+  // Play animation for an incoming Admin message
+  playAnimationForMessage(text, mode = SIGNING_MODES.FINGERSPELLING, signSequence = null) {
+    // 1. Cancel previous sequence cleanly to avoid race conditions
+    if (this.animationFrame) safeCancelAnim(this.animationFrame);
+    if (this.viewer) {
+      this.viewer.stop();
+    }
 
-    this.state.progressPercent = progress;
-    this.state.timeDisplay = `00:0${sec} / 00:04`;
+    const config = getSignConfig(text, mode);
+    const estDurationSec = getPhraseDuration(text, mode);
+    this.duration = Math.max(2000, Math.round(estDurationSec * 1000));
+
+    this.state.text = text;
+    this.state.mode = mode;
+    this.state.signSequence = signSequence || config.signSequence || [];
+    this.state.supported = config.supported;
+    this.state.cycle = 1;
+    this.state.maxCycles = 2;
+    this.state.isPlaying = config.supported;
+    this.state.completed = !config.supported;
+    this.state.cameraResponseComplete = !config.supported;
+    this.state.progressPercent = 0;
+    this.state.activeToken = '';
+    this.state.isDirectWord = false;
+    this.startTime = Date.now();
+
+    // 2. Camera becomes neutral during animation playback
+    communicationService.emit('CAMERA_TURN_ACTIVE', { active: false });
     this.notify();
 
-    if (elapsed < this.singleCycleDuration) {
-      this.animationFrame = requestAnimationFrame(() => this.runCycleLoop());
+    // 3. Drive 3D Viewer if attached
+    if (this.viewer) {
+      this.viewer.play(text, mode);
     } else {
-      // Completed current cycle pass
-      if (this.state.cycle < this.state.maxCycles) {
-        this.state.cycle++;
-        this.startTime = Date.now();
-        this.notify();
-        this.animationFrame = requestAnimationFrame(() => this.runCycleLoop());
-      } else {
-        // Automatic 2X Playback ENDED!
-        this.finishPlayback();
-      }
+      // Fallback timer if viewer is not mounted (e.g. headless unit tests)
+      this.runFallbackTimer();
+    }
+  }
+
+  runFallbackTimer() {
+    const elapsed = Date.now() - this.startTime;
+    const progress = Math.min((elapsed / this.duration) * 100, 100);
+    const totalSec = Math.round(this.duration / 1000);
+    const sec = Math.min(Math.floor(elapsed / 1000), totalSec);
+
+    this.state.progressPercent = progress;
+    this.state.timeDisplay = `00:0${sec} / 00:0${totalSec}`;
+    this.notify();
+
+    if (elapsed < this.duration) {
+      this.animationFrame = safeRequestAnim(() => this.runFallbackTimer());
+    } else {
+      this.finishPlayback();
     }
   }
 
   finishPlayback() {
-    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+    if (this.animationFrame) safeCancelAnim(this.animationFrame);
 
     this.state.isPlaying = false;
     this.state.completed = true;
     this.state.cameraResponseComplete = true;
     this.state.progressPercent = 100;
-    this.state.timeDisplay = '00:04 / 00:04';
+    const totalSec = Math.round(this.duration / 1000);
+    this.state.timeDisplay = `00:0${totalSec} / 00:0${totalSec}`;
 
-    // Trigger green active camera state on Deaf Person interface!
+    // Trigger green active camera turn-taking on Deaf interface
     communicationService.emit('CAMERA_TURN_ACTIVE', { active: true });
-
     this.notify();
   }
 
   replay() {
-    this.playAnimationForMessage(this.state.text);
+    this.playAnimationForMessage(this.state.text, this.state.mode, this.state.signSequence);
   }
 
   stop() {
-    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
+    if (this.animationFrame) safeCancelAnim(this.animationFrame);
+    if (this.viewer) {
+      this.viewer.stop();
+    }
     this.state.isPlaying = false;
     this.notify();
   }

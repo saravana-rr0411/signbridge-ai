@@ -5,9 +5,10 @@ import { renderMessageComposer } from './MessageComposer.js';
 export function renderChatPanel({
   conversation = [],
   isDeafView = true,
-  composerText = ''
+  composerText = '',
+  activeMode = 'FINGERSPELLING'
 }) {
-  const badgeText = isDeafView ? 'Live Stream' : 'Synchronized';
+  const badgeText = isDeafView ? 'Live' : 'Relay';
   const badgeClass = isDeafView
     ? 'bg-secondary-container/50 text-secondary'
     : 'bg-emerald-50 text-emerald-800 border border-emerald-200';
@@ -21,20 +22,20 @@ export function renderChatPanel({
   return `
     <div class="flex flex-col h-full overflow-hidden">
       <!-- Chat Header -->
-      <div class="flex items-center justify-between pb-3.5 border-b border-outline-variant/30 flex-shrink-0">
-        <div class="flex items-center gap-2">
-          <span class="material-symbols-outlined text-secondary text-[22px]">forum</span>
-          <h2 class="text-xl font-extrabold text-primary tracking-tight">Conversation</h2>
+      <div class="flex items-center justify-between pb-2 border-b border-outline-variant/30 flex-shrink-0 gap-1.5">
+        <div class="flex items-center gap-1.5 min-w-0">
+          <span class="material-symbols-outlined text-secondary text-[20px] flex-shrink-0">forum</span>
+          <h2 class="text-base lg:text-lg font-extrabold text-primary tracking-tight truncate">Conversation</h2>
         </div>
-        <div class="flex items-center gap-2">
+        <div class="flex items-center gap-1 flex-shrink-0">
           <button type="button" 
                   id="btn-reset-demo" 
-                  class="p-1 rounded-lg text-outline hover:text-primary hover:bg-surface-container transition-colors cursor-pointer"
+                  class="p-1 rounded-md text-outline hover:text-primary hover:bg-surface-container transition-colors cursor-pointer"
                   title="Reset Demo Session">
-            <span class="material-symbols-outlined text-[18px]">restart_alt</span>
+            <span class="material-symbols-outlined text-[17px]">restart_alt</span>
           </button>
-          <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full ${badgeClass} text-xs font-bold uppercase tracking-wider shadow-xs">
-            <span class="w-2 h-2 rounded-full ${dotClass}"></span>
+          <div class="flex items-center gap-1 px-2 py-0.5 rounded-full ${badgeClass} text-[10px] font-bold uppercase tracking-wider shadow-xs">
+            <span class="w-1.5 h-1.5 rounded-full ${dotClass}"></span>
             <span>${badgeText}</span>
           </div>
         </div>
@@ -74,7 +75,7 @@ export function renderChatPanel({
           <span class="font-mono text-[11px] text-outline">Desk #04</span>
         </div>
       ` : `
-        ${renderMessageComposer(composerText)}
+        ${renderMessageComposer(composerText, activeMode)}
       `}
     </div>
   `;

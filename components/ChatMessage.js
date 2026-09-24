@@ -16,7 +16,7 @@ export function renderChatMessage(msg) {
           <span class="text-[10px] text-outline font-mono">${msg.time || 'Just now'}</span>
         </div>
         <div class="max-w-[90%] ${activeStyle} border text-on-surface rounded-2xl rounded-tl-xs px-3.5 py-2.5 shadow-xs">
-          <p class="text-sm font-medium leading-relaxed">${escapeHtml(msg.text)}</p>
+          <p class="text-sm font-medium leading-relaxed break-words">${escapeHtml(msg.text)}</p>
         </div>
       </div>
     `;
@@ -29,7 +29,7 @@ export function renderChatMessage(msg) {
           <span class="material-symbols-outlined text-[15px] text-primary">visibility</span>
         </div>
         <div class="max-w-[90%] bg-white border-2 border-primary/20 text-primary rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-xs">
-          <p class="text-sm font-semibold leading-relaxed">"${escapeHtml(msg.text)}"</p>
+          <p class="text-sm font-semibold leading-relaxed break-words">"${escapeHtml(msg.text)}"</p>
         </div>
       </div>
     `;

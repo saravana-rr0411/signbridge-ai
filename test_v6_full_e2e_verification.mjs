@@ -119,6 +119,7 @@ async function runVerification() {
   console.log(`E2E FLOW VERIFICATION SUMMARY: ${passedCount}/10 SIGNS FULLY VERIFIED`);
   console.log('========================================================================');
   if (failedCount > 0) process.exit(1);
+  process.exit(0);
 }
 
 runVerification();

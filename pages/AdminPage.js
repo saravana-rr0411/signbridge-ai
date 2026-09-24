@@ -10,6 +10,9 @@ import { cameraService } from '../services/cameraService.js';
 import { communicationService } from '../services/communicationService.js';
 import { PRESET_CATEGORIES } from '../services/mockData.js';
 import { hospitalConversationService } from '../services/conversation/hospitalConversationService.js';
+import { SIGNING_MODES, getSignConfig } from '../services/signAnimation/signConfig.js';
+import { speechService } from '../services/signAnimation/speechRecognition.js';
+import { adminTtsService } from '../services/adminTtsService.js';
 
 export function renderAdminPage() {
   const conversation = conversationStore.getConversation();
@@ -22,29 +25,12 @@ export function renderAdminPage() {
       <!-- Reusable Left Sidebar -->
       ${renderSidebar('#/admin')}
 
-      <!-- Main Three-Panel Viewport (~33% / ~33% / ~34%) -->
-      <main class="flex-1 h-full overflow-y-auto lg:overflow-hidden p-4 lg:p-5 bg-surface flex flex-col">
-        <!-- Top Operational Bar -->
-        <div class="flex items-center justify-between pb-3.5 mb-2 border-b border-outline-variant/30 flex-shrink-0">
-          <div class="flex items-center gap-3">
-            <span class="material-symbols-outlined text-primary text-[24px]">support_agent</span>
-            <div>
-              <h1 class="text-xl lg:text-2xl font-extrabold text-primary tracking-tight">Staff Communication Console</h1>
-              <span class="text-xs text-on-surface-variant font-medium">Bi-directional Live Relay &amp; Presets</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <div class="flex items-center gap-1.5 px-3 py-1 rounded-full bg-secondary-container text-on-secondary-container text-xs font-bold uppercase tracking-wider shadow-xs">
-              <span class="w-2 h-2 rounded-full bg-secondary animate-pulse"></span>
-              <span>Desk #04 Active</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- 3-Panel Split Layout -->
-        <div class="w-full flex-1 flex flex-col lg:flex-row gap-4 lg:gap-5 min-h-0">
-          <!-- SECTION 1 (LEFT ~33%): DEAF PERSON LIVE FEED & REAL-TIME RECOGNIZED TEXT -->
-          <section class="flex-1 lg:w-[33%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden">
+      <!-- Main Three-Panel Viewport (Equal ~33.3% 3-Column Desktop Grid) -->
+      <main class="flex-1 h-full overflow-y-auto lg:overflow-hidden p-3.5 lg:p-4 bg-surface flex flex-col min-w-0 min-h-0">
+        <!-- 3-Panel Split Layout Extending to Top -->
+        <div class="w-full flex-1 flex flex-col lg:flex-row gap-3.5 lg:gap-4 min-h-0 h-full">
+          <!-- SECTION 1 (LEFT): DEAF PERSON LIVE FEED & REAL-TIME RECOGNIZED TEXT -->
+          <section class="flex-1 lg:w-1/3 min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderLiveCamera({
               isDeafView: false,
               title: 'Deaf Person',
@@ -60,18 +46,18 @@ export function renderAdminPage() {
             )}
           </section>
 
-          <!-- SECTION 2 (CENTER ~33%): PRESET RESPONSES (BANK, HOSPITAL, GOV OFFICE) -->
-          <!-- Note: NO sign language animation video on Admin page as per requirement -->
-          <section class="flex-1 lg:w-[33%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden" id="admin-preset-section">
-            ${renderPresetLibrary(PRESET_CATEGORIES.HOSPITAL)}
+          <!-- SECTION 2 (CENTER): PRESET RESPONSES (BANK, HOSPITAL, GOV OFFICE, ASL, ISL) -->
+          <section class="flex-1 lg:w-1/3 min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden" id="admin-preset-section">
+            ${renderPresetLibrary(PRESET_CATEGORIES.HOSPITAL, SIGNING_MODES.FINGERSPELLING)}
           </section>
 
-          <!-- SECTION 3 (RIGHT ~34%): CONVERSATION + FIXED MESSAGE COMPOSER -->
-          <section class="flex-1 lg:w-[34%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden">
+          <!-- SECTION 3 (RIGHT): CONVERSATION + FIXED MESSAGE COMPOSER -->
+          <section class="flex-1 lg:w-1/3 min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderChatPanel({
               conversation: conversation,
               isDeafView: false,
-              composerText: ''
+              composerText: '',
+              activeMode: SIGNING_MODES.FINGERSPELLING
             })}
           </section>
         </div>
@@ -85,6 +71,7 @@ export function initAdminPage() {
   const clearBtn = document.getElementById('composer-clear-btn');
   const composerForm = document.getElementById('admin-composer-form');
   let currentCategory = PRESET_CATEGORIES.HOSPITAL;
+  let currentSigningMode = SIGNING_MODES.FINGERSPELLING;
 
   // Helper to scroll conversation timeline
   function scrollToBottom() {
@@ -94,11 +81,47 @@ export function initAdminPage() {
     }
   }
 
+  function updateComposerModeBadge() {
+    const badge = document.getElementById('composer-mode-badge');
+    if (badge) {
+      badge.textContent = currentSigningMode;
+    }
+  }
+
+  function reRenderPresetSection() {
+    const presetSection = document.getElementById('admin-preset-section');
+    if (presetSection) {
+      presetSection.innerHTML = renderPresetLibrary(currentCategory, currentSigningMode);
+      bindSigningModeTabs();
+      bindCategoryTabs();
+      bindPresetClicks();
+    }
+  }
+
+  // Bind Signing Mode Tabs (FINGERSPELLING, ASL, ISL)
+  function bindSigningModeTabs() {
+    document.querySelectorAll('.signing-mode-tab-btn').forEach((tabBtn) => {
+      tabBtn.addEventListener('click', () => {
+        const mode = tabBtn.getAttribute('data-signing-mode');
+        if (mode) {
+          currentSigningMode = mode;
+          updateComposerModeBadge();
+          reRenderPresetSection();
+        }
+      });
+    });
+  }
+
   // Bind Preset Item Clicks -> Populates Composer WITHOUT Sending
   function bindPresetClicks() {
     document.querySelectorAll('.preset-item-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
         const text = btn.getAttribute('data-text');
+        const mode = btn.getAttribute('data-mode');
+        if (mode) {
+          currentSigningMode = mode;
+          updateComposerModeBadge();
+        }
         if (text && composerInput) {
           composerInput.value = text;
           if (clearBtn) clearBtn.classList.remove('hidden');
@@ -115,12 +138,7 @@ export function initAdminPage() {
         const category = tabBtn.getAttribute('data-category');
         if (category) {
           currentCategory = category;
-          const presetSection = document.getElementById('admin-preset-section');
-          if (presetSection) {
-            presetSection.innerHTML = renderPresetLibrary(category);
-            bindCategoryTabs();
-            bindPresetClicks();
-          }
+          reRenderPresetSection();
         }
       });
     });
@@ -151,11 +169,56 @@ export function initAdminPage() {
     });
   }
 
+  // Web Speech API Voice Input (Speech-to-Text)
+  const micBtn = document.getElementById('composer-mic-btn');
+  const micIcon = document.getElementById('composer-mic-icon');
+  const speechStatus = document.getElementById('speech-recognition-status');
+
+  if (micBtn) {
+    micBtn.addEventListener('click', () => {
+      if (speechService.getIsListening()) {
+        speechService.stop();
+        if (micIcon) micIcon.textContent = 'mic';
+        micBtn.classList.remove('text-rose-600', 'bg-rose-100');
+        if (speechStatus) speechStatus.classList.add('hidden');
+      } else {
+        const started = speechService.start({
+          onStart: () => {
+            if (micIcon) micIcon.textContent = 'mic';
+            micBtn.classList.add('text-rose-600', 'bg-rose-100');
+            if (speechStatus) speechStatus.classList.remove('hidden');
+          },
+          onResult: (transcript) => {
+            if (composerInput) {
+              composerInput.value = transcript;
+              if (clearBtn) clearBtn.classList.remove('hidden');
+            }
+          },
+          onEnd: () => {
+            if (micIcon) micIcon.textContent = 'mic';
+            micBtn.classList.remove('text-rose-600', 'bg-rose-100');
+            if (speechStatus) speechStatus.classList.add('hidden');
+          },
+          onError: () => {
+            if (micIcon) micIcon.textContent = 'mic';
+            micBtn.classList.remove('text-rose-600', 'bg-rose-100');
+            if (speechStatus) speechStatus.classList.add('hidden');
+          }
+        });
+        if (!started) {
+          console.warn('Speech recognition not available or denied.');
+        }
+      }
+    });
+  }
+
   // Send message action
   function submitMessage() {
     if (!composerInput) return;
     const messageText = composerInput.value.trim();
     if (!messageText) return;
+
+    const signConfig = getSignConfig(messageText, currentSigningMode);
 
     // 1. Add Admin Message to conversationStore
     conversationStore.addMessage({
@@ -163,16 +226,29 @@ export function initAdminPage() {
       senderName: 'Admin (Officer Vance)',
       text: messageText,
       type: 'text',
-      isActiveReply: true
+      isActiveReply: true,
+      mode: currentSigningMode
     });
 
-    // 2. Dispatch to Deaf interface via communicationService
+    // 2. Dispatch legacy message to communicationService
     communicationService.emit('ADMIN_MESSAGE_SENT', {
       text: messageText,
+      timestamp: Date.now(),
+      mode: currentSigningMode,
+      hasSignResponse: true
+    });
+
+    // 3. Dispatch dedicated sign response payload for 3D sign animation
+    communicationService.emit('ADMIN_SIGN_RESPONSE', {
+      type: "ADMIN_SIGN_RESPONSE",
+      messageId: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
+      text: messageText,
+      mode: currentSigningMode,
+      signSequence: signConfig.signSequence || [],
       timestamp: Date.now()
     });
 
-    // 3. Clear composer input
+    // 4. Clear composer input
     composerInput.value = '';
     if (clearBtn) clearBtn.classList.add('hidden');
     composerInput.focus();
@@ -189,6 +265,7 @@ export function initAdminPage() {
   }
 
   // Initial bindings
+  bindSigningModeTabs();
   bindCategoryTabs();
   bindPresetClicks();
   scrollToBottom();
@@ -280,9 +357,19 @@ export function initAdminPage() {
     scrollToBottom();
   }
 
+  // Pre-seed already existing messages so page load does not read historical chat aloud
+  adminTtsService.markExistingAsSpoken(conversationStore.getConversation());
+
   // Subscribe to conversationStore updates
   const unsubConv = conversationStore.subscribe((conversation) => {
     renderChatMessages(conversation);
+    // Handle cross-tab/storage conversation updates for new incoming Deaf messages
+    if (Array.isArray(conversation) && conversation.length > 0) {
+      const latestMsg = conversation[conversation.length - 1];
+      if (latestMsg && latestMsg.sender === 'deaf') {
+        adminTtsService.speakIncomingDeafMessage(latestMsg);
+      }
+    }
   });
 
   // Listen for incoming Deaf person messages via communicationService event bus
@@ -306,6 +393,21 @@ export function initAdminPage() {
       }
 
       renderChatMessages(conversationStore.getConversation());
+
+      // AUTOMATIC TEXT-TO-SPEECH AT RUNTIME FOR INCOMING DEAF MESSAGE
+      adminTtsService.speakIncomingDeafMessage(payload);
+    }
+  });
+
+  // Listen for TTS speaking state to update UI indicator
+  const unsubTtsState = adminTtsService.onStateChange((isSpeaking) => {
+    const ttsIndicator = document.getElementById('admin-live-transcript-tts-indicator');
+    if (ttsIndicator) {
+      if (isSpeaking) {
+        ttsIndicator.classList.remove('hidden');
+      } else {
+        ttsIndicator.classList.add('hidden');
+      }
     }
   });
 
@@ -393,6 +495,9 @@ export function initAdminPage() {
 
   // TEARDOWN FUNCTION: Clean up subscriptions and remote video
   return () => {
+    speechService.stop();
+    adminTtsService.stop();
+    unsubTtsState();
     cameraService.disconnectAdminFeed();
     unsubRecog();
     unsubHosp();

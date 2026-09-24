@@ -2,7 +2,8 @@
 import { renderSidebar } from '../components/Sidebar.js';
 import { renderLiveCamera } from '../components/LiveCamera.js';
 import { renderSignTranscript } from '../components/SignTranscript.js';
-import { renderSignAnimation } from '../components/SignAnimation.js';
+import { renderSignAnimation, SignAnimationViewer } from '../components/SignAnimation.js';
+import { MODE_LABELS } from '../services/signAnimation/signConfig.js';
 import { renderChatPanel } from '../components/ChatPanel.js';
 import { cameraService } from '../services/cameraService.js';
 import { signRecognitionService } from '../services/signRecognitionService.js';
@@ -25,43 +26,17 @@ export function renderDeafPage() {
       <!-- Reusable Left Sidebar -->
       ${renderSidebar('#/deaf')}
 
-      <!-- Main Three-Panel Viewport (~33% / ~33% / ~34%) -->
-      <main class="flex-1 h-full overflow-y-auto lg:overflow-hidden p-4 lg:p-5 bg-surface flex flex-col">
-        <!-- Operational Top Bar with Lightweight Public Service Context Selector -->
-        <div class="flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/30 flex-shrink-0 flex-wrap gap-2">
-          <div class="flex items-center gap-2.5">
-            <span class="material-symbols-outlined text-primary text-[24px]">sign_language</span>
-            <div>
-              <h1 class="text-lg lg:text-xl font-extrabold text-primary leading-tight">Deaf Person Interface</h1>
-              <span class="text-xs text-on-surface-variant font-medium">Public Service Communication Relay</span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <!-- Context Selector -->
-            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-surface-container rounded-lg border border-outline-variant/40">
-              <span class="material-symbols-outlined text-rose-600 text-[16px]">local_hospital</span>
-              <label for="context-selector" class="text-xs font-bold text-slate-700">Context:</label>
-              <select id="context-selector" class="text-xs font-bold bg-transparent text-rose-800 focus:outline-none cursor-pointer">
-                <option value="hospital" selected>Hospital (First-Visit)</option>
-                <option value="bank" disabled>Bank (Coming Soon)</option>
-                <option value="gov" disabled>Government Office (Coming Soon)</option>
-              </select>
-            </div>
-            <span class="text-xs px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold uppercase tracking-wider">
-              Desk #04
-            </span>
-          </div>
-        </div>
-
-        <!-- 3-Panel Split View -->
-        <div class="w-full flex-1 flex flex-col lg:flex-row gap-4 lg:gap-5 min-h-0">
-          <!-- SECTION 1 (LEFT ~33%): REAL LIVE CAMERA & SIGN-TO-TEXT TRANSCRIPT -->
-          <section class="flex-1 lg:w-[33%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden">
+      <!-- Main Three-Panel Viewport (Maximized Full Viewport Height) -->
+      <main class="flex-1 h-full overflow-y-auto lg:overflow-hidden p-3.5 lg:p-4 bg-surface flex flex-col min-w-0 min-h-0">
+        <!-- 3-Panel Split View Extending to Top -->
+        <div class="w-full flex-1 flex flex-col lg:flex-row gap-3.5 lg:gap-4 min-h-0 h-full">
+          <!-- SECTION 1 (LEFT): ENLARGED LIVE VIDEO & SIGN-TO-TEXT TRANSCRIPT -->
+          <section class="flex-[1.2] lg:w-[38%] min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderLiveCamera({
               isDeafView: true,
-              title: 'Start speaking',
+              title: 'Camera',
               isTurnActive: animState.cameraResponseComplete,
-              turnStatus: animState.cameraResponseComplete ? 'Your Turn to Sign' : 'Observing Signer'
+              turnStatus: animState.cameraResponseComplete ? 'Your Turn' : 'Ready'
             })}
             ${renderSignTranscript(
               transcript,
@@ -73,13 +48,13 @@ export function renderDeafPage() {
             )}
           </section>
 
-          <!-- SECTION 2 (CENTER ~33%): ANIMATED SIGN REPLY (AUTOMATIC 2X PLAYBACK) -->
-          <section class="flex-1 lg:w-[33%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden">
+          <!-- SECTION 2 (CENTER): ANIMATED SIGN REPLY (AUTOMATIC 2X PLAYBACK) -->
+          <section class="flex-1 lg:w-[31%] min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderSignAnimation(animState)}
           </section>
 
-          <!-- SECTION 3 (RIGHT ~34%): CONVERSATION (CHAT STREAM) -->
-          <section class="flex-1 lg:w-[34%] flex flex-col h-full bg-surface-container-lowest rounded-2xl p-4 lg:p-5 shadow-sm border border-outline-variant/30 overflow-hidden">
+          <!-- SECTION 3 (RIGHT): CONVERSATION (CHAT STREAM) -->
+          <section class="flex-1 lg:w-[31%] min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderChatPanel({
               conversation: conversation,
               isDeafView: true
@@ -117,7 +92,7 @@ export function initDeafPage() {
         turnIndicatorDot.className = 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping';
       }
       if (turnStatusText) {
-        turnStatusText.textContent = 'Your Turn to Sign';
+        turnStatusText.textContent = 'Your Turn';
       }
     } else {
       if (cameraContainer) {
@@ -131,7 +106,7 @@ export function initDeafPage() {
         turnIndicatorDot.className = 'w-2 h-2 rounded-full bg-outline-variant';
       }
       if (turnStatusText) {
-        turnStatusText.textContent = 'Observing Signer';
+        turnStatusText.textContent = 'Ready';
       }
     }
   }
@@ -222,6 +197,20 @@ export function initDeafPage() {
     });
   }
 
+  // 3D Sign Animation Avatar Viewport Mount (Three.js xbot.glb)
+  const canvasMount = document.getElementById('sign-viewer-canvas-mount');
+  let signViewerInstance = null;
+  if (canvasMount) {
+    const curAnim = signAnimationService.getState();
+    signViewerInstance = new SignAnimationViewer({
+      text: curAnim.text || 'Hello',
+      mode: curAnim.mode || 'FINGERSPELLING',
+      autoPlay: false
+    });
+    signViewerInstance.mount(canvasMount);
+    signAnimationService.attachViewer(signViewerInstance);
+  }
+
   // Context Selector listener
   const contextSelector = document.getElementById('context-selector');
   if (contextSelector) {
@@ -266,7 +255,7 @@ export function initDeafPage() {
     });
   }
 
-  // Subscribe to Sign Animation Lifecycle (2X Automatic Playback)
+  // Subscribe to Sign Animation Lifecycle (3D Viewport Updates)
   const unsubAnim = signAnimationService.subscribe((state) => {
     const progressBar = document.getElementById('playback-progress');
     const timeRemaining = document.getElementById('time-remaining');
@@ -274,28 +263,36 @@ export function initDeafPage() {
     const playbackBadge = document.getElementById('playback-badge');
     const playbackStatusText = document.getElementById('playback-status-text');
     const syncText = document.getElementById('sync-animation-text');
+    const activeModeBadge = document.getElementById('sign-active-mode-badge');
+    const modeSubcaption = document.getElementById('sign-mode-subcaption');
+    const syncModeLabel = document.getElementById('sync-mode-label');
+
+    const modeLabel = MODE_LABELS[state.mode] || state.mode || 'Fingerspelling';
+    if (activeModeBadge) activeModeBadge.textContent = modeLabel;
+    if (modeSubcaption) modeSubcaption.innerHTML = `Relay mode: <span class="font-bold text-primary">${modeLabel}</span>`;
+    if (syncModeLabel) syncModeLabel.textContent = modeLabel;
 
     if (progressBar) progressBar.style.width = state.progressPercent + '%';
     if (timeRemaining) timeRemaining.textContent = state.timeDisplay;
     if (syncText) syncText.textContent = `"${state.text}"`;
 
     if (state.completed) {
-      if (cycleLabel) cycleLabel.textContent = 'Completed 2 of 2 iterations';
+      if (cycleLabel) cycleLabel.textContent = 'Completed';
       if (playbackBadge) {
         playbackBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300 text-xs font-bold uppercase tracking-wide';
         playbackBadge.innerHTML = `
           <span class="material-symbols-outlined text-[16px] text-emerald-700">check_circle</span>
-          <span>Complete (2 of 2)</span>
+          <span>Complete</span>
         `;
       }
       applyGreenCameraState(true);
     } else if (state.isPlaying) {
-      if (cycleLabel) cycleLabel.textContent = `Cycle ${state.cycle} of ${state.maxCycles} (Playing)`;
+      if (cycleLabel) cycleLabel.textContent = 'Playing';
       if (playbackBadge) {
         playbackBadge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-primary-container text-secondary-container text-xs font-bold uppercase tracking-wide shadow-xs';
         playbackBadge.innerHTML = `
           <span class="w-2 h-2 rounded-full bg-secondary animate-ping"></span>
-          <span>Playing ${state.cycle} of ${state.maxCycles}</span>
+          <span>Playing</span>
         `;
       }
       applyGreenCameraState(false);
@@ -406,11 +403,23 @@ export function initDeafPage() {
     }
   });
 
-  // Listen for incoming Admin messages via communicationService (triggers 2x sign animation!)
-  const unsubComm = communicationService.on('ADMIN_MESSAGE_SENT', (payload) => {
+  // Listen for incoming Admin sign responses via communicationService (triggers 3D sign animation!)
+  const unsubSignResponse = communicationService.on('ADMIN_SIGN_RESPONSE', (payload) => {
     if (payload && payload.text) {
       applyGreenCameraState(false);
-      signAnimationService.playAnimationForMessage(payload.text);
+      signAnimationService.playAnimationForMessage(
+        payload.text,
+        payload.mode || 'FINGERSPELLING',
+        payload.signSequence || null
+      );
+    }
+  });
+
+  // Listen for legacy incoming Admin messages via communicationService
+  const unsubComm = communicationService.on('ADMIN_MESSAGE_SENT', (payload) => {
+    if (payload && payload.text && !payload.hasSignResponse) {
+      applyGreenCameraState(false);
+      signAnimationService.playAnimationForMessage(payload.text, payload.mode || 'FINGERSPELLING');
     }
   });
 
@@ -450,10 +459,13 @@ export function initDeafPage() {
     landmarkPipelineService.reset();
     signRecognitionService.stopRecognition();
     signAnimationService.stop();
+    signAnimationService.detachViewer();
+    signViewerInstance?.destroy();
     unsubAnim();
     unsubRecog();
     unsubHosp();
     unsubConv();
+    unsubSignResponse();
     unsubComm();
     unsubReset();
   };

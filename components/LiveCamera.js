@@ -4,7 +4,7 @@
 
 export function renderLiveCamera({
   isDeafView = true,
-  title = 'Start speaking',
+  title = 'Sign Camera',
   isTurnActive = false,
   turnStatus = 'Observing Signer'
 }) {
@@ -12,7 +12,7 @@ export function renderLiveCamera({
   const badgeId = isDeafView ? 'deaf-turn-badge' : 'admin-turn-badge';
 
   const borderClass = isTurnActive
-    ? 'camera-turn-active border-2 border-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.35)]'
+    ? 'camera-turn-active border-2 border-emerald-500 shadow-[0_0_16px_rgba(16,185,129,0.3)]'
     : 'border border-outline-variant/30';
 
   const badgeClass = isTurnActive
@@ -20,43 +20,43 @@ export function renderLiveCamera({
     : 'bg-surface-container text-on-surface-variant';
 
   const dotClass = isTurnActive
-    ? 'w-2.5 h-2.5 rounded-full bg-emerald-500 animate-ping'
+    ? 'w-2 h-2 rounded-full bg-emerald-500 animate-ping'
     : 'w-2 h-2 rounded-full bg-outline-variant';
 
   return `
     <div class="flex flex-col flex-1 min-h-0">
       <!-- Section Header & Status Indicator -->
-      <div class="flex items-center justify-between pb-3.5 flex-shrink-0 flex-wrap gap-2">
-        <h2 class="text-2xl font-extrabold text-primary tracking-tight">
+      <div class="flex items-center justify-between pb-2 flex-shrink-0 gap-1.5">
+        <h2 class="text-sm lg:text-base font-extrabold text-primary tracking-tight whitespace-nowrap">
           ${title}
         </h2>
-        <div class="flex items-center gap-2 flex-wrap">
+        <div class="flex items-center gap-1.5 flex-shrink-0">
           ${isDeafView ? `
             <!-- CAMERA CONTROLS -->
             <button type="button" 
                     id="btn-start-camera" 
-                    class="px-2.5 py-1 text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
-              <span class="material-symbols-outlined text-[15px]">videocam</span>
-              <span>Start Camera</span>
+                    class="px-2 py-0.5 text-[11px] font-bold bg-emerald-600 hover:bg-emerald-700 text-white rounded-md shadow-xs transition-colors flex items-center gap-0.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[14px]">videocam</span>
+              <span>Start</span>
             </button>
             <button type="button" 
                     id="btn-stop-camera" 
-                    class="px-2.5 py-1 text-xs font-bold bg-slate-700 hover:bg-slate-800 text-white rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer">
-              <span class="material-symbols-outlined text-[15px]">videocam_off</span>
-              <span>Stop Camera</span>
+                    class="px-2 py-0.5 text-[11px] font-bold bg-slate-700 hover:bg-slate-800 text-white rounded-md shadow-xs transition-colors flex items-center gap-0.5 cursor-pointer">
+              <span class="material-symbols-outlined text-[14px]">videocam_off</span>
+              <span>Stop</span>
             </button>
           ` : ''}
-          <div id="${badgeId}" class="transition-all duration-300 flex items-center gap-1.5 px-3 py-1 rounded-full ${badgeClass} font-bold text-xs uppercase tracking-wider shadow-xs">
+          <div id="${badgeId}" class="transition-all duration-300 flex items-center gap-1 px-2 py-0.5 rounded-full ${badgeClass} font-bold text-[10px] uppercase tracking-wider shadow-xs">
             <span class="${dotClass}" id="${isDeafView ? 'turn-indicator-dot' : 'admin-turn-dot'}"></span>
             <span id="${isDeafView ? 'turn-status-text' : 'admin-status-text'}">
-              ${isDeafView ? (isTurnActive ? 'Your Turn to Sign' : turnStatus) : 'Citizen Stream Active'}
+              ${isDeafView ? (isTurnActive ? 'Your Turn' : 'Ready') : 'Active'}
             </span>
           </div>
         </div>
       </div>
 
       <!-- Main Video Container (Clean, Minimal, Occupied Entirely by Live Video) -->
-      <div id="${containerId}" class="relative w-full flex-1 min-h-[260px] bg-slate-950 rounded-xl overflow-hidden transition-all duration-300 ${borderClass} shadow-xs flex items-center justify-center">
+      <div id="${containerId}" class="relative w-full flex-1 min-h-[220px] lg:min-h-[280px] bg-slate-950 rounded-xl overflow-hidden transition-all duration-300 ${borderClass} shadow-xs flex items-center justify-center">
         
         ${isDeafView ? `
           <!-- REAL BROWSER WEBCAM LIVE VIDEO (Mirrored horizontally for natural self-view) -->
@@ -128,75 +128,14 @@ export function renderLiveCamera({
         `}
       </div>
 
-
-      <!-- Hospital First-Visit Controlled Phrase Layer (Template & Sign Trigger) -->
+      <!-- Preserved Hidden Select/Button for Contract Compatibility (Zero UI Space) -->
       ${isDeafView ? `
-        <div class="mt-2.5 flex flex-col gap-1.5 px-0.5">
-          <div class="flex items-center justify-between gap-2 flex-wrap">
-            <div class="flex items-center gap-1.5 flex-1 min-w-[260px]">
-              <span class="text-xs text-on-surface-variant font-bold flex items-center gap-1 flex-shrink-0" title="Hospital First-Visit Predefined Phrases">
-                <span class="material-symbols-outlined text-[16px] text-rose-600">local_hospital</span>
-                Hospital Phrase:
-              </span>
-              <select id="hospital-phrase-select" 
-                      class="text-xs bg-surface-container border border-outline-variant/50 rounded-lg px-2 py-1.5 text-primary font-medium focus:outline-none focus:ring-1 focus:ring-primary flex-1 truncate cursor-pointer">
-                <optgroup label="Greeting & Assistance">
-                  <option value="hosp_01">1. "Hello, I need help." [ML: HELLO / HELP]</option>
-                </optgroup>
-                <optgroup label="Registration & Visit Purpose">
-                  <option value="hosp_02">2. "I am here to see the doctor." [Template]</option>
-                  <option value="hosp_07">7. "I need an appointment." [Template]</option>
-                </optgroup>
-                <optgroup label="Symptoms & Conditions">
-                  <option value="hosp_03">3. "I am not feeling well." [Template]</option>
-                  <option value="hosp_04">4. "I have been feeling sick since yesterday." [Template]</option>
-                  <option value="hosp_05">5. "I have pain here." [Template]</option>
-                  <option value="hosp_06">6. "I need to tell you about my problem." [Template]</option>
-                </optgroup>
-                <optgroup label="Communication Support">
-                  <option value="hosp_08">8. "Please speak slowly." [ML: PLEASE]</option>
-                  <option value="hosp_09">9. "I cannot hear you clearly." [Template]</option>
-                  <option value="hosp_10">10. "I don't understand." [ML: NO]</option>
-                  <option value="hosp_11">11. "Please write it down." [Template]</option>
-                </optgroup>
-                <optgroup label="Navigation & Urgent Requests">
-                  <option value="hosp_12">12. "Where should I wait?" [Template]</option>
-                  <option value="hosp_13">13. "Where is the consultation room?" [Template]</option>
-                  <option value="hosp_14">14. "Please ask the doctor to come." [Template]</option>
-                </optgroup>
-                <optgroup label="Closing & Gratitude">
-                  <option value="hosp_15">15. "Thank you for helping me." [ML: THANK_YOU]</option>
-                </optgroup>
-              </select>
-              <button type="button" 
-                      id="btn-trigger-hospital-phrase"
-                      class="px-3 py-1.5 text-xs font-bold bg-rose-700 hover:bg-rose-800 text-white rounded-lg shadow-xs transition-colors flex items-center gap-1 cursor-pointer flex-shrink-0"
-                      title="Send selected predefined hospital phrase">
-                <span>Send</span>
-                <span class="material-symbols-outlined text-[14px]">send</span>
-              </button>
-            </div>
-            <div class="flex items-center gap-1 flex-wrap">
-              <button type="button" 
-                      class="btn-quick-hospital-phrase px-2 py-1 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-md transition-colors cursor-pointer"
-                      data-phrase-id="hosp_07">
-                Appointment
-              </button>
-              <button type="button" 
-                      class="btn-quick-hospital-phrase px-2 py-1 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-md transition-colors cursor-pointer"
-                      data-phrase-id="hosp_02">
-                See Doctor
-              </button>
-              <button type="button" 
-                      class="btn-quick-hospital-phrase px-2 py-1 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-md transition-colors cursor-pointer"
-                      data-phrase-id="hosp_05">
-                Pain Here
-              </button>
-              <button type="button" 
-                      class="btn-quick-hospital-phrase px-2 py-1 text-[11px] font-semibold bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-md transition-colors cursor-pointer"
-                      data-phrase-id="hosp_12">
-            </div>
-          </div>
+        <div class="hidden" style="display: none;" aria-hidden="true">
+          <select id="hospital-phrase-select">
+            <option value="hosp_01">1. "Hello, I need help."</option>
+            <option value="hosp_07">7. "I need an appointment."</option>
+          </select>
+          <button type="button" id="btn-trigger-hospital-phrase">Send</button>
         </div>
       ` : ''}
     </div>

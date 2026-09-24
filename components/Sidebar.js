@@ -18,81 +18,56 @@ export function renderSidebar(currentPath = '#/deaf') {
     : 'text-on-surface-variant hover:bg-surface-container hover:text-on-surface font-semibold';
 
   return `
-    <aside id="main-sidebar" class="w-72 h-full bg-surface-container-lowest shadow-[0_1px_8px_rgba(0,0,0,0.04)] z-50 flex flex-col justify-between select-none flex-shrink-0 transition-transform duration-200">
+    <aside id="main-sidebar" class="w-64 h-full bg-surface-container-lowest shadow-[0_1px_6px_rgba(0,0,0,0.03)] z-50 flex flex-col justify-between select-none flex-shrink-0">
       <div class="flex flex-col">
         <!-- Logo / Title Header -->
-        <a href="#/deaf" class="h-20 px-4 flex items-center gap-3 bg-surface-container-low border-b border-outline-variant/20 hover:opacity-95 transition-opacity">
-          <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-xs">
-            <span class="material-symbols-outlined text-on-primary text-[24px]">sign_language</span>
+        <a href="#/deaf" class="h-16 px-4 flex items-center gap-3 bg-surface-container-low border-b border-outline-variant/20 hover:opacity-90 transition-opacity">
+          <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-xs">
+            <span class="material-symbols-outlined text-on-primary text-[22px]">sign_language</span>
           </div>
-          <div class="flex flex-col">
-            <span class="text-xl font-bold text-primary leading-tight tracking-tight">SignBridge AI</span>
-            <span class="text-xs text-on-surface-variant font-medium">Accessible Civic Relay</span>
+          <div class="flex flex-col min-w-0">
+            <span class="text-base font-bold text-primary leading-tight tracking-tight truncate">SignBridge AI</span>
+            <span class="text-[11px] text-on-surface-variant font-medium truncate">Accessible Civic Relay</span>
           </div>
         </a>
 
         <!-- Operational Interfaces Navigation -->
         <div class="p-3">
-          <div class="px-2 py-1.5 text-xs uppercase text-on-surface-variant tracking-wider font-bold">
+          <div class="px-2 py-1 text-[11px] uppercase text-on-surface-variant/80 tracking-wider font-bold">
             Operational Interfaces
           </div>
-          <nav class="flex flex-col gap-1.5 mt-1.5">
+          <nav class="flex flex-col gap-1 mt-1">
             <a href="#/deaf" 
-               class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all min-h-[48px] ${deafActiveClass}"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all min-h-[44px] ${deafActiveClass}"
                aria-current="${isDeaf ? 'page' : 'false'}">
-              <span class="material-symbols-outlined text-[22px]">visibility</span>
+              <span class="material-symbols-outlined text-[20px]">visibility</span>
               <span class="text-sm">Deaf Person Interface</span>
             </a>
 
             <a href="#/admin" 
-               class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all min-h-[48px] ${adminActiveClass}"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all min-h-[44px] ${adminActiveClass}"
                aria-current="${isAdmin ? 'page' : 'false'}">
-              <span class="material-symbols-outlined text-[22px]">support_agent</span>
+              <span class="material-symbols-outlined text-[20px]">support_agent</span>
               <span class="text-sm">Staff Interface</span>
             </a>
 
             <a href="#/history" 
-               class="flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all min-h-[48px] ${historyActiveClass}"
+               class="flex items-center gap-3 px-3.5 py-2.5 rounded-xl transition-all min-h-[44px] ${historyActiveClass}"
                aria-current="${isHistory ? 'page' : 'false'}">
-              <span class="material-symbols-outlined text-[22px]">analytics</span>
+              <span class="material-symbols-outlined text-[20px]">analytics</span>
               <span class="text-sm">Chat History & Records</span>
             </a>
           </nav>
         </div>
       </div>
 
-      <!-- Counter Administration & Profile -->
-      <div class="flex flex-col bg-surface-container-low p-3 gap-2 border-t border-outline-variant/30">
-        <div class="px-2 py-1 text-xs uppercase text-on-surface-variant tracking-wider font-bold">
-          Counter Administration
-        </div>
-        
-        <nav class="flex flex-col gap-1">
-          <button type="button" 
-                  id="btn-counter-settings"
-                  class="flex items-center gap-3 px-4 py-2.5 rounded-xl text-on-surface-variant hover:bg-surface-container hover:text-on-surface transition-colors min-h-[44px] text-left w-full cursor-pointer">
-            <span class="material-symbols-outlined text-[20px]">tune</span>
-            <span class="text-sm font-semibold">Counter Settings</span>
-          </button>
-        </nav>
-
-        <!-- Officer Profile Chip -->
-        <div class="flex items-center gap-2.5 px-3 py-2 rounded-xl bg-surface-container mt-0.5">
-          <div class="w-9 h-9 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white shadow-xs">
-            <span class="material-symbols-outlined text-[20px]">person</span>
-          </div>
-          <div class="flex flex-col min-w-0 flex-1">
-            <span class="text-sm font-bold text-on-surface truncate">Officer J. Vance</span>
-            <span class="text-xs text-on-surface-variant truncate font-mono">Counter Desk #04</span>
-          </div>
-        </div>
-
-        <!-- End Session / Logout Button -->
+      <!-- Bottom Section: Logout Only -->
+      <div class="p-3 border-t border-outline-variant/30 flex-shrink-0">
         <a href="#/login" 
            id="btn-logout"
-           class="flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-all min-h-[44px] mt-1 font-semibold text-sm cursor-pointer shadow-xs">
-          <span class="material-symbols-outlined text-[20px]">power_settings_new</span>
-          <span>End Session / Logout</span>
+           class="flex items-center justify-center gap-2 px-3 py-2.5 rounded-xl bg-error-container text-on-error-container hover:bg-error hover:text-on-error transition-all min-h-[42px] font-semibold text-xs cursor-pointer shadow-xs">
+          <span class="material-symbols-outlined text-[18px]">logout</span>
+          <span>Logout</span>
         </a>
       </div>
     </aside>

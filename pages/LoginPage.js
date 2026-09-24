@@ -10,20 +10,23 @@ export function renderLoginPage() {
 
       <!-- Main Split Layout (Exactly 50% / 50% Desktop) -->
       <main class="min-h-screen w-full grid grid-cols-1 md:grid-cols-2 relative z-10">
-        <!-- Left Half: Project Branding (Cropped Pure Hand Symbol Arch + Title ONLY) -->
+        <!-- Left Half: Project Branding (Clean Brand Emblem Card + Title + Subtitle) -->
         <div class="flex flex-col items-center justify-center p-8 md:p-14 lg:p-20">
           <div class="flex flex-col items-center justify-center text-center">
-            <!-- Clean isolated hand symbol: embedded text cropped out completely, pure transparent blend without white box -->
-            <div class="w-[220px] h-[155px] overflow-hidden flex items-start justify-center" style="mix-blend-mode: multiply;">
+            <!-- Polished Brand Emblem Icon -->
+            <div class="w-28 h-28 rounded-3xl bg-white border border-slate-200/80 shadow-[0_8px_30px_rgba(15,41,66,0.06)] flex items-center justify-center p-2 mb-4 overflow-hidden">
               <img src="./assets/images/signbridge-logo.png" 
                    alt="SignBridge AI Hand Symbol" 
-                   class="w-[220px] h-auto object-cover pointer-events-none select-none" 
-                   style="clip-path: inset(0px 0px 38% 0px); mix-blend-mode: multiply; filter: contrast(1.12);" />
+                   class="w-24 h-auto object-cover pointer-events-none select-none" 
+                   style="clip-path: inset(0px 0px 38% 0px); transform: translateY(-4px);" />
             </div>
-            <!-- Separate Crisp HTML Title -->
-            <h1 class="text-4xl lg:text-5xl font-extrabold tracking-tight text-[#0f2942] mt-4">
+            <!-- Crisp HTML Title & Subtitle -->
+            <h1 class="text-3xl lg:text-4xl font-extrabold tracking-tight text-[#0f2942]">
               SignBridge AI
             </h1>
+            <p class="text-sm text-slate-500 mt-1.5 font-medium">
+              Accessible Public Service Communication Relay
+            </p>
           </div>
         </div>
 

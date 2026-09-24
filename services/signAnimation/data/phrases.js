@@ -1,0 +1,335 @@
+const PREDEFINED_PHRASES = [
+  {
+    id: "phrase-01",
+    slug: "hello",
+    displayText: "Hello",
+    normalizedText: "hello",
+    category: "Greetings",
+    signAssetRef: "/signs/hello/animation.gltf",
+    animationVideoRef: "/signs/hello/sign.mp4",
+    status: "pending",
+    contextNote: "Standard greeting gesture in ASL/ISL"
+  },
+  {
+    id: "phrase-02",
+    slug: "good-morning",
+    displayText: "Good morning",
+    normalizedText: "good morning",
+    category: "Greetings",
+    signAssetRef: "/signs/good-morning/animation.gltf",
+    animationVideoRef: "/signs/good-morning/sign.mp4",
+    status: "pending",
+    contextNote: 'Compound sign: "Good" + "Morning"'
+  },
+  {
+    id: "phrase-03",
+    slug: "how-can-i-help-you",
+    displayText: "How can I help you?",
+    normalizedText: "how can i help you",
+    category: "Assistance",
+    signAssetRef: "/signs/how-can-i-help-you/animation.gltf",
+    animationVideoRef: "/signs/how-can-i-help-you/sign.mp4",
+    status: "pending",
+    contextNote: "Customer service / front desk assistance query"
+  },
+  {
+    id: "phrase-04",
+    slug: "what-do-you-need",
+    displayText: "What do you need?",
+    normalizedText: "what do you need",
+    category: "Assistance",
+    signAssetRef: "/signs/what-do-you-need/animation.gltf",
+    animationVideoRef: "/signs/what-do-you-need/sign.mp4",
+    status: "pending",
+    contextNote: "General assistance inquiry"
+  },
+  {
+    id: "phrase-05",
+    slug: "please-wait",
+    displayText: "Please wait",
+    normalizedText: "please wait",
+    category: "Instructions",
+    signAssetRef: "/signs/please-wait/animation.gltf",
+    animationVideoRef: "/signs/please-wait/sign.mp4",
+    status: "pending",
+    contextNote: "Polite waiting directive"
+  },
+  {
+    id: "phrase-06",
+    slug: "wait-a-moment",
+    displayText: "Wait a moment",
+    normalizedText: "wait a moment",
+    category: "Instructions",
+    signAssetRef: "/signs/wait-a-moment/animation.gltf",
+    animationVideoRef: "/signs/wait-a-moment/sign.mp4",
+    status: "pending",
+    contextNote: "Brief pause instruction"
+  },
+  {
+    id: "phrase-07",
+    slug: "thank-you",
+    displayText: "Thank you",
+    normalizedText: "thank you",
+    category: "Greetings",
+    signAssetRef: "/signs/thank-you/animation.gltf",
+    animationVideoRef: "/signs/thank-you/sign.mp4",
+    status: "pending",
+    contextNote: "Open flat hand moving from chin forward"
+  },
+  {
+    id: "phrase-08",
+    slug: "you-are-welcome",
+    displayText: "You are welcome",
+    normalizedText: "you are welcome",
+    category: "Greetings",
+    signAssetRef: "/signs/you-are-welcome/animation.gltf",
+    animationVideoRef: "/signs/you-are-welcome/sign.mp4",
+    status: "pending",
+    contextNote: "Welcoming acknowledgment"
+  },
+  {
+    id: "phrase-09",
+    slug: "yes",
+    displayText: "Yes",
+    normalizedText: "yes",
+    category: "Assistance",
+    signAssetRef: "/signs/yes/animation.gltf",
+    animationVideoRef: "/signs/yes/sign.mp4",
+    status: "pending",
+    contextNote: "Fist nodding gesture"
+  },
+  {
+    id: "phrase-10",
+    slug: "no",
+    displayText: "No",
+    normalizedText: "no",
+    category: "Assistance",
+    signAssetRef: "/signs/no/animation.gltf",
+    animationVideoRef: "/signs/no/sign.mp4",
+    status: "pending",
+    contextNote: "Index and middle fingers snapping onto thumb"
+  },
+  {
+    id: "phrase-11",
+    slug: "okay",
+    displayText: "Okay",
+    normalizedText: "okay",
+    category: "Assistance",
+    signAssetRef: "/signs/okay/animation.gltf",
+    animationVideoRef: "/signs/okay/sign.mp4",
+    status: "pending",
+    contextNote: 'Fingerspelling "O-K" or standard gesture'
+  },
+  {
+    id: "phrase-12",
+    slug: "please-come-here",
+    displayText: "Please come here",
+    normalizedText: "please come here",
+    category: "Instructions",
+    signAssetRef: "/signs/please-come-here/animation.gltf",
+    animationVideoRef: "/signs/please-come-here/sign.mp4",
+    status: "pending",
+    contextNote: "Polite beckoning directive"
+  },
+  {
+    id: "phrase-13",
+    slug: "please-sit-down",
+    displayText: "Please sit down",
+    normalizedText: "please sit down",
+    category: "Instructions",
+    signAssetRef: "/signs/please-sit-down/animation.gltf",
+    animationVideoRef: "/signs/please-sit-down/sign.mp4",
+    status: "pending",
+    contextNote: "Direction to be seated"
+  },
+  {
+    id: "phrase-14",
+    slug: "please-stand-here",
+    displayText: "Please stand here",
+    normalizedText: "please stand here",
+    category: "Instructions",
+    signAssetRef: "/signs/please-stand-here/animation.gltf",
+    animationVideoRef: "/signs/please-stand-here/sign.mp4",
+    status: "pending",
+    contextNote: "Direction to stand in designated location"
+  },
+  {
+    id: "phrase-15",
+    slug: "show-me-your-id",
+    displayText: "Show me your ID",
+    normalizedText: "show me your id",
+    category: "Documents & Verification",
+    signAssetRef: "/signs/show-me-your-id/animation.gltf",
+    animationVideoRef: "/signs/show-me-your-id/sign.mp4",
+    status: "pending",
+    contextNote: "Identification check instruction"
+  },
+  {
+    id: "phrase-16",
+    slug: "give-me-your-document",
+    displayText: "Give me your document",
+    normalizedText: "give me your document",
+    category: "Documents & Verification",
+    signAssetRef: "/signs/give-me-your-document/animation.gltf",
+    animationVideoRef: "/signs/give-me-your-document/sign.mp4",
+    status: "pending",
+    contextNote: "Document submission request"
+  },
+  {
+    id: "phrase-17",
+    slug: "sign-here",
+    displayText: "Sign here",
+    normalizedText: "sign here",
+    category: "Documents & Verification",
+    signAssetRef: "/signs/sign-here/animation.gltf",
+    animationVideoRef: "/signs/sign-here/sign.mp4",
+    status: "pending",
+    contextNote: "Signature indication gesture"
+  },
+  {
+    id: "phrase-18",
+    slug: "please-fill-this-form",
+    displayText: "Please fill this form",
+    normalizedText: "please fill this form",
+    category: "Documents & Verification",
+    signAssetRef: "/signs/please-fill-this-form/animation.gltf",
+    animationVideoRef: "/signs/please-fill-this-form/sign.mp4",
+    status: "pending",
+    contextNote: "Form completion instruction"
+  },
+  {
+    id: "phrase-19",
+    slug: "your-turn",
+    displayText: "Your turn",
+    normalizedText: "your turn",
+    category: "Queue & Status",
+    signAssetRef: "/signs/your-turn/animation.gltf",
+    animationVideoRef: "/signs/your-turn/sign.mp4",
+    status: "pending",
+    contextNote: "Queue turn notification"
+  },
+  {
+    id: "phrase-20",
+    slug: "next-person-please",
+    displayText: "Next person please",
+    normalizedText: "next person please",
+    category: "Queue & Status",
+    signAssetRef: "/signs/next-person-please/animation.gltf",
+    animationVideoRef: "/signs/next-person-please/sign.mp4",
+    status: "pending",
+    contextNote: "Queue calling announcement"
+  },
+  {
+    id: "phrase-21",
+    slug: "do-you-need-help",
+    displayText: "Do you need help?",
+    normalizedText: "do you need help",
+    category: "Assistance",
+    signAssetRef: "/signs/do-you-need-help/animation.gltf",
+    animationVideoRef: "/signs/do-you-need-help/sign.mp4",
+    status: "pending",
+    contextNote: "Assistance offering question"
+  },
+  {
+    id: "phrase-22",
+    slug: "i-can-help-you",
+    displayText: "I can help you",
+    normalizedText: "i can help you",
+    category: "Assistance",
+    signAssetRef: "/signs/i-can-help-you/animation.gltf",
+    animationVideoRef: "/signs/i-can-help-you/sign.mp4",
+    status: "pending",
+    contextNote: "Reassuring offer of aid"
+  },
+  {
+    id: "phrase-23",
+    slug: "please-repeat",
+    displayText: "Please repeat",
+    normalizedText: "please repeat",
+    category: "Assistance",
+    signAssetRef: "/signs/please-repeat/animation.gltf",
+    animationVideoRef: "/signs/please-repeat/sign.mp4",
+    status: "pending",
+    contextNote: "Request to repeat information"
+  },
+  {
+    id: "phrase-24",
+    slug: "i-dont-understand",
+    displayText: "I don't understand",
+    normalizedText: "i dont understand",
+    category: "Assistance",
+    signAssetRef: "/signs/i-dont-understand/animation.gltf",
+    animationVideoRef: "/signs/i-dont-understand/sign.mp4",
+    status: "pending",
+    contextNote: "Lack of comprehension indicator"
+  },
+  {
+    id: "phrase-25",
+    slug: "do-you-understand",
+    displayText: "Do you understand?",
+    normalizedText: "do you understand",
+    category: "Assistance",
+    signAssetRef: "/signs/do-you-understand/animation.gltf",
+    animationVideoRef: "/signs/do-you-understand/sign.mp4",
+    status: "pending",
+    contextNote: "Comprehension confirmation query"
+  },
+  {
+    id: "phrase-26",
+    slug: "where-do-you-want-to-go",
+    displayText: "Where do you want to go?",
+    normalizedText: "where do you want to go",
+    category: "Instructions",
+    signAssetRef: "/signs/where-do-you-want-to-go/animation.gltf",
+    animationVideoRef: "/signs/where-do-you-want-to-go/sign.mp4",
+    status: "pending",
+    contextNote: "Direction and navigation query"
+  },
+  {
+    id: "phrase-27",
+    slug: "please-follow-me",
+    displayText: "Please follow me",
+    normalizedText: "please follow me",
+    category: "Instructions",
+    signAssetRef: "/signs/please-follow-me/animation.gltf",
+    animationVideoRef: "/signs/please-follow-me/sign.mp4",
+    status: "pending",
+    contextNote: "Guiding direction instruction"
+  },
+  {
+    id: "phrase-28",
+    slug: "your-request-is-completed",
+    displayText: "Your request is completed",
+    normalizedText: "your request is completed",
+    category: "Queue & Status",
+    signAssetRef: "/signs/your-request-is-completed/animation.gltf",
+    animationVideoRef: "/signs/your-request-is-completed/sign.mp4",
+    status: "pending",
+    contextNote: "Task completion confirmation"
+  },
+  {
+    id: "phrase-29",
+    slug: "please-come-tomorrow",
+    displayText: "Please come tomorrow",
+    normalizedText: "please come tomorrow",
+    category: "Instructions",
+    signAssetRef: "/signs/please-come-tomorrow/animation.gltf",
+    animationVideoRef: "/signs/please-come-tomorrow/sign.mp4",
+    status: "pending",
+    contextNote: "Scheduling instruction for next day"
+  },
+  {
+    id: "phrase-30",
+    slug: "have-a-nice-day",
+    displayText: "Have a nice day",
+    normalizedText: "have a nice day",
+    category: "Greetings",
+    signAssetRef: "/signs/have-a-nice-day/animation.gltf",
+    animationVideoRef: "/signs/have-a-nice-day/sign.mp4",
+    status: "pending",
+    contextNote: "Parting polite blessing/greeting"
+  }
+];
+export {
+  PREDEFINED_PHRASES
+};
