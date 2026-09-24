@@ -130,14 +130,13 @@ class WebRTCService {
       case 'PEER_CONNECTED':
         if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
           console.log('[WebRTC Broadcaster] Opposite peer connected. Checking connection state...');
-          if (this.senderPC) {
-            const ice = this.senderPC.iceConnectionState;
-            const conn = this.senderPC.connectionState;
-            if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
-              console.log('[WebRTC Broadcaster] Already connected, announcing stream presence.');
-              this.sendSignaling({ type: 'RTC_STREAM_READY' });
-              return;
-            }
+          if (this.isBroadcasterConnectionActiveOrConnecting()) {
+            const ice = this.senderPC?.iceConnectionState;
+            const conn = this.senderPC?.connectionState;
+            const sig = this.senderPC?.signalingState;
+            console.log(`[WebRTC Broadcaster] Connection active or establishing (ice=${ice}, conn=${conn}, sig=${sig}). Preserving senderPC, announcing stream presence.`);
+            this.sendSignaling({ type: 'RTC_STREAM_READY' });
+            return;
           }
           await this.startBroadcasterOffer();
         } else if (this.role === 'RECEIVER' && (!this.remoteStream || !this.remoteStream.active)) {
@@ -151,20 +150,13 @@ class WebRTCService {
       case 'REQUEST_STREAM':
         if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
           console.log('[WebRTC Broadcaster] Received REQUEST_STREAM from Admin.');
-          if (this.senderPC) {
-            const ice = this.senderPC.iceConnectionState;
-            const conn = this.senderPC.connectionState;
-            const sig = this.senderPC.signalingState;
-
-            if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
-              console.log('[WebRTC Broadcaster] Connection already active (ice=' + ice + '). Re-announcing stream.');
-              this.sendSignaling({ type: 'RTC_STREAM_READY' });
-              return;
-            }
-            if (sig === 'have-local-offer') {
-              console.log('[WebRTC Broadcaster] Local offer already dispatched. Awaiting answer, skipping redundant offer.');
-              return;
-            }
+          if (this.isBroadcasterConnectionActiveOrConnecting()) {
+            const ice = this.senderPC?.iceConnectionState;
+            const conn = this.senderPC?.connectionState;
+            const sig = this.senderPC?.signalingState;
+            console.log(`[WebRTC Broadcaster] Connection active or in-progress (ice=${ice}, conn=${conn}, sig=${sig}). Preserving senderPC, skipping redundant offer.`);
+            this.sendSignaling({ type: 'RTC_STREAM_READY' });
+            return;
           }
           await this.startBroadcasterOffer();
         }
@@ -211,6 +203,11 @@ class WebRTCService {
       case 'RTC_STREAM_STOPPED':
       case 'STREAM_OFFLINE':
         if (this.role === 'RECEIVER') {
+          // Guard: Only react if message originated from active broadcaster / deaf role
+          if ((data.origin && data.origin !== 'broadcaster') || (data.senderRole && data.senderRole !== 'deaf' && data.senderRole !== 'system')) {
+            console.log('[WebRTC Receiver] Ignoring non-broadcaster stream stopped event.');
+            break;
+          }
           console.log('[WebRTC Receiver] Broadcaster stream stopped.');
           this.remoteStream = null;
           let el = this.videoElement || (typeof document !== 'undefined' ? document.getElementById('admin-camera-video') : null);
@@ -227,6 +224,26 @@ class WebRTCService {
         }
         break;
     }
+  }
+
+  // Check if existing broadcaster senderPC is active or in-progress connecting
+  isBroadcasterConnectionActiveOrConnecting() {
+    if (!this.senderPC) return false;
+    const ice = this.senderPC.iceConnectionState;
+    const conn = this.senderPC.connectionState;
+    const sig = this.senderPC.signalingState;
+
+    // Active or in-progress states that must be preserved
+    if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
+      return true;
+    }
+    if (sig === 'have-local-offer') {
+      return true;
+    }
+    if (ice === 'checking' || conn === 'connecting') {
+      return true;
+    }
+    return false;
   }
 
   // =========================================================================
@@ -263,21 +280,14 @@ class WebRTCService {
     try {
       this.isNegotiating = true;
 
-      // Guard: do not destroy an already active, connected PeerConnection
+      // Guard: do not destroy an already active, connected, or in-progress PeerConnection
       if (this.senderPC) {
-        const ice = this.senderPC.iceConnectionState;
-        const conn = this.senderPC.connectionState;
-        const sig = this.senderPC.signalingState;
-
-        if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
-          console.log(`[WebRTC Broadcaster] Connection already active (ice=${ice}, conn=${conn}). Preserving.`);
+        if (this.isBroadcasterConnectionActiveOrConnecting()) {
+          const ice = this.senderPC.iceConnectionState;
+          const conn = this.senderPC.connectionState;
+          const sig = this.senderPC.signalingState;
+          console.log(`[WebRTC Broadcaster] Connection active or establishing (ice=${ice}, conn=${conn}, sig=${sig}). Preserving.`);
           this.sendSignaling({ type: 'RTC_STREAM_READY' });
-          this.isNegotiating = false;
-          return;
-        }
-
-        if (sig === 'have-local-offer') {
-          console.log('[WebRTC Broadcaster] Local offer already awaiting answer. Preserving.');
           this.isNegotiating = false;
           return;
         }
@@ -400,13 +410,24 @@ class WebRTCService {
   }
 
   unpublishStream() {
-    console.log('[WebRTC Broadcaster] Unpublishing stream.');
+    // FIX 2 Guard: Only broadcast RTC_STREAM_STOPPED if this instance was actually an active BROADCASTER
+    const wasActiveBroadcaster = Boolean(this.role === 'BROADCASTER' && this.stream && this.stream.active !== false);
+
     if (this.heartbeatTimer) {
       clearInterval(this.heartbeatTimer);
       this.heartbeatTimer = null;
     }
 
-    this.sendSignaling({ type: 'RTC_STREAM_STOPPED' });
+    if (wasActiveBroadcaster) {
+      console.log('[WebRTC Broadcaster] Unpublishing stream and notifying peers.');
+      this.sendSignaling({
+        type: 'RTC_STREAM_STOPPED',
+        origin: 'broadcaster',
+        senderRole: 'deaf'
+      });
+    } else {
+      console.log('[WebRTC Broadcaster] unpublishStream called without active broadcast role/stream; skipping RTC_STREAM_STOPPED broadcast.');
+    }
 
     if (this.senderPC) {
       try { this.senderPC.close(); } catch (e) {}
