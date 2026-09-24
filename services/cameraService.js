@@ -57,6 +57,8 @@ class CameraService {
           videoElement.muted = true;
           videoElement.play().catch(() => {});
         }
+        // Ensure WebRTC peer relay is published even when reusing stream
+        webrtcService.publishStream(this.stream);
         return { success: true, stream: this.stream };
       }
     }

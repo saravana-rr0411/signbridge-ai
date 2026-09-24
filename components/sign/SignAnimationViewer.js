@@ -459,9 +459,9 @@ export class SignAnimationViewer {
     if (info && info.token) {
       badge.classList.remove('hidden');
       if (info.isDirectWord) {
-        badgeText.textContent = `Sign: ${info.token}`;
+        badgeText.innerHTML = `<span class="text-black">Current Sign:</span> <span class="text-black font-bold">${info.token}</span>`;
       } else {
-        badgeText.textContent = `Letter: ${info.token}`;
+        badgeText.innerHTML = `<span class="text-black">Current Letter:</span> <span class="text-black font-bold">${info.token}</span>`;
       }
     } else {
       badge.classList.add('hidden');
@@ -556,9 +556,9 @@ export function renderSignAnimationViewer(props = {}) {
         <div id="sign-viewer-canvas-mount" class="w-full h-full"></div>
 
         <!-- Real-time Active Token Pill Overlay (Letter / Sign) -->
-        <div id="active-token-badge" class="hidden absolute top-3 left-3 z-10 px-2.5 py-1 rounded-lg bg-surface-container/90 backdrop-blur-md border border-cyan-500/40 text-cyan-300 font-mono text-[11px] font-bold shadow-md flex items-center gap-1.5 animate-fadeIn">
-          <span class="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-          <span id="active-token-text">Letter: A</span>
+        <div id="active-token-badge" class="hidden absolute top-3 left-3 z-10 px-2.5 py-1 rounded-lg bg-white/95 backdrop-blur-md border border-slate-300 text-black font-mono text-[11px] font-bold shadow-md flex items-center gap-1.5 animate-fadeIn">
+          <span class="w-2 h-2 rounded-full bg-black animate-pulse"></span>
+          <span id="active-token-text" class="text-black"><span class="text-black">Current Letter:</span> <span class="text-black font-bold">A</span></span>
         </div>
 
         <!-- Unsupported Natural Sign Fallback Banner -->

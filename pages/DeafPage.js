@@ -49,7 +49,7 @@ export function renderDeafPage() {
           </section>
 
           <!-- SECTION 2 (CENTER): ANIMATED SIGN REPLY (AUTOMATIC 2X PLAYBACK) -->
-          <section class="flex-1 lg:w-[31%] min-w-0 min-h-0 flex flex-col h-full bg-surface-container-lowest rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
+          <section class="flex-1 lg:w-[31%] min-w-0 min-h-0 flex flex-col h-full bg-[#F3F4F6] rounded-2xl p-3.5 lg:p-4 shadow-sm border border-outline-variant/30 overflow-hidden">
             ${renderSignAnimation(animState)}
           </section>
 

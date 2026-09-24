@@ -1,8 +1,17 @@
 // services/webrtcService.js - Robust WebRTC Peer-to-Peer Video Stream Relay
-// Connects Deaf Person camera stream to Admin "CITIZEN LIVE FEED" across independent browser windows
-// Features: Dual-channel signaling (BroadcastChannel + storage event), ICE candidate queuing, auto-reconnect
+// Connects Deaf Person camera stream to Admin "CITIZEN LIVE FEED" across independent devices/laptops
+// Features: Dual-channel signaling, state guards against renegotiation storms, Unified Plan track recovery,
+// autoplay-safe video attachment, and comprehensive connection diagnostics.
 
 import { communicationService } from './communicationService.js';
+
+const ICE_SERVERS = [
+  { urls: 'stun:stun.l.google.com:19302' },
+  { urls: 'stun:stun1.l.google.com:19302' },
+  { urls: 'stun:stun2.l.google.com:19302' },
+  { urls: 'stun:stun3.l.google.com:19302' },
+  { urls: 'stun:stun4.l.google.com:19302' }
+];
 
 class WebRTCService {
   constructor() {
@@ -15,18 +24,18 @@ class WebRTCService {
     this.senderPC = null;
     this.receiverPC = null;
 
-    this.queuedCandidates = [];
-    this.hasRemoteDescription = false;
+    this.broadcasterQueuedCandidates = [];
+    this.receiverQueuedCandidates = [];
     this.seenMessageIds = new Set();
     this.heartbeatTimer = null;
     this.requestRetryTimer = null;
+    this.isNegotiating = false;
 
     this.initSignaling();
   }
 
   // Dual-transport signaling: WebSocket (cross-device) + BroadcastChannel & localStorage (same-machine fallback)
   initSignaling() {
-    // 1. Cross-Device WebSocket transport via communicationService
     const rtcEvents = [
       'RTC_OFFER',
       'RTC_ANSWER',
@@ -49,7 +58,7 @@ class WebRTCService {
 
     if (typeof window === 'undefined') return;
 
-    // 2. Same-machine fallback: BroadcastChannel
+    // Same-machine fallback: BroadcastChannel
     try {
       this.channel = new BroadcastChannel('signbridge_webrtc_channel_v3');
       this.channel.onmessage = (event) => {
@@ -58,10 +67,10 @@ class WebRTCService {
         }
       };
     } catch (e) {
-      console.warn('BroadcastChannel unavailable for WebRTC:', e);
+      console.warn('[WebRTC] BroadcastChannel unavailable:', e);
     }
 
-    // 3. Same-machine fallback: storage event
+    // Same-machine fallback: storage event
     window.addEventListener('storage', (event) => {
       if (event.key === 'signbridge_rtc_sig_msg' && event.newValue) {
         try {
@@ -75,7 +84,6 @@ class WebRTCService {
   sendSignaling(message) {
     if (!message) return;
 
-    // Normalize event type to standard WebRTC signaling names
     let eventType = message.type;
     if (eventType === 'REQUEST_STREAM') eventType = 'RTC_REQUEST_STREAM';
     if (eventType === 'BROADCASTER_ANNOUNCE') eventType = 'RTC_STREAM_READY';
@@ -112,18 +120,27 @@ class WebRTCService {
     if (this.seenMessageIds.has(data.id)) return;
     this.seenMessageIds.add(data.id);
 
-    // Prevent memory buildup of message IDs
-    if (this.seenMessageIds.size > 200) {
-      this.seenMessageIds.clear();
+    if (this.seenMessageIds.size > 300) {
+      const first = this.seenMessageIds.values().next().value;
+      this.seenMessageIds.delete(first);
     }
 
     switch (data.type) {
       // Opposite peer connected to room -> trigger renegotiation if ready
       case 'PEER_CONNECTED':
         if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
-          console.log('[WebRTC Broadcaster] Opposite peer connected. Initiating offer...');
+          console.log('[WebRTC Broadcaster] Opposite peer connected. Checking connection state...');
+          if (this.senderPC) {
+            const ice = this.senderPC.iceConnectionState;
+            const conn = this.senderPC.connectionState;
+            if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
+              console.log('[WebRTC Broadcaster] Already connected, announcing stream presence.');
+              this.sendSignaling({ type: 'RTC_STREAM_READY' });
+              return;
+            }
+          }
           await this.startBroadcasterOffer();
-        } else if (this.role === 'RECEIVER' && !this.remoteStream) {
+        } else if (this.role === 'RECEIVER' && (!this.remoteStream || !this.remoteStream.active)) {
           console.log('[WebRTC Receiver] Opposite peer connected. Requesting stream...');
           this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
         }
@@ -133,7 +150,22 @@ class WebRTCService {
       case 'RTC_REQUEST_STREAM':
       case 'REQUEST_STREAM':
         if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
-          console.log('[WebRTC Broadcaster] Received REQUEST_STREAM from Admin. Creating Offer...');
+          console.log('[WebRTC Broadcaster] Received REQUEST_STREAM from Admin.');
+          if (this.senderPC) {
+            const ice = this.senderPC.iceConnectionState;
+            const conn = this.senderPC.connectionState;
+            const sig = this.senderPC.signalingState;
+
+            if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
+              console.log('[WebRTC Broadcaster] Connection already active (ice=' + ice + '). Re-announcing stream.');
+              this.sendSignaling({ type: 'RTC_STREAM_READY' });
+              return;
+            }
+            if (sig === 'have-local-offer') {
+              console.log('[WebRTC Broadcaster] Local offer already dispatched. Awaiting answer, skipping redundant offer.');
+              return;
+            }
+          }
           await this.startBroadcasterOffer();
         }
         break;
@@ -141,7 +173,14 @@ class WebRTCService {
       // Deaf broadcaster announces stream presence
       case 'RTC_STREAM_READY':
       case 'BROADCASTER_ANNOUNCE':
-        if (this.role === 'RECEIVER' && !this.remoteStream) {
+        if (this.role === 'RECEIVER') {
+          if (this.receiverPC) {
+            const ice = this.receiverPC.iceConnectionState;
+            const conn = this.receiverPC.connectionState;
+            if ((ice === 'connected' || conn === 'connected') && this.remoteStream && this.remoteStream.active) {
+              return; // Already streaming cleanly
+            }
+          }
           console.log('[WebRTC Receiver] Detected active broadcaster. Requesting stream...');
           this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
         }
@@ -150,7 +189,7 @@ class WebRTCService {
       // Receiver receives Offer from Broadcaster
       case 'RTC_OFFER':
         if (this.role === 'RECEIVER') {
-          console.log('[WebRTC Receiver] Received RTC_OFFER. Handling offer...');
+          console.log('[WebRTC Receiver] Received RTC_OFFER.');
           await this.handleRemoteOffer(data.sdp);
         }
         break;
@@ -158,7 +197,7 @@ class WebRTCService {
       // Broadcaster receives Answer from Receiver
       case 'RTC_ANSWER':
         if (this.role === 'BROADCASTER' && this.senderPC) {
-          console.log('[WebRTC Broadcaster] Received RTC_ANSWER. Setting remote description...');
+          console.log('[WebRTC Broadcaster] Received RTC_ANSWER.');
           await this.handleRemoteAnswer(data.sdp);
         }
         break;
@@ -172,10 +211,15 @@ class WebRTCService {
       case 'RTC_STREAM_STOPPED':
       case 'STREAM_OFFLINE':
         if (this.role === 'RECEIVER') {
-          console.log('[WebRTC Receiver] Broadcaster stream went offline.');
+          console.log('[WebRTC Receiver] Broadcaster stream stopped.');
           this.remoteStream = null;
-          if (this.videoElement) {
-            this.videoElement.srcObject = null;
+          let el = this.videoElement || (typeof document !== 'undefined' ? document.getElementById('admin-camera-video') : null);
+          if (el) {
+            el.srcObject = null;
+          }
+          if (this.receiverPC) {
+            try { this.receiverPC.close(); } catch (e) {}
+            this.receiverPC = null;
           }
           if (this.onStatusChange) {
             this.onStatusChange(false, null);
@@ -190,60 +234,118 @@ class WebRTCService {
   // =========================================================================
   publishStream(stream) {
     if (!stream) return;
-    console.log('[WebRTC Broadcaster] Publishing stream:', stream.id);
+    const liveTracks = stream.getVideoTracks().filter((t) => t.readyState === 'live');
+    console.log('[WebRTC Broadcaster] Publishing stream:', stream.id, 'Live video tracks:', liveTracks.length);
+
     this.role = 'BROADCASTER';
     this.stream = stream;
 
-    // Start periodic broadcaster heartbeat so Admin window knows stream is live
+    // Periodic announcement heartbeat so Admin knows stream is alive
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = setInterval(() => {
       if (this.stream && this.stream.active) {
         this.sendSignaling({ type: 'RTC_STREAM_READY' });
       }
-    }, 1500);
+    }, 4000);
 
     // Announce immediately and initiate offer
     this.sendSignaling({ type: 'RTC_STREAM_READY' });
-    this.startBroadcasterOffer();
+    return this.startBroadcasterOffer();
   }
 
   async startBroadcasterOffer() {
     if (!this.stream || !this.stream.active) return;
+    if (this.isNegotiating) {
+      console.log('[WebRTC Broadcaster] Negotiation already in flight, skipping.');
+      return;
+    }
 
     try {
+      this.isNegotiating = true;
+
+      // Guard: do not destroy an already active, connected PeerConnection
       if (this.senderPC) {
+        const ice = this.senderPC.iceConnectionState;
+        const conn = this.senderPC.connectionState;
+        const sig = this.senderPC.signalingState;
+
+        if (ice === 'connected' || ice === 'completed' || conn === 'connected') {
+          console.log(`[WebRTC Broadcaster] Connection already active (ice=${ice}, conn=${conn}). Preserving.`);
+          this.sendSignaling({ type: 'RTC_STREAM_READY' });
+          this.isNegotiating = false;
+          return;
+        }
+
+        if (sig === 'have-local-offer') {
+          console.log('[WebRTC Broadcaster] Local offer already awaiting answer. Preserving.');
+          this.isNegotiating = false;
+          return;
+        }
+
+        // Previous connection failed or disconnected -> close cleanly before recreating
         try { this.senderPC.close(); } catch (e) {}
+        this.senderPC = null;
       }
 
-      this.queuedCandidates = [];
-      this.hasRemoteDescription = false;
+      console.log('[WebRTC Broadcaster] Creating new RTCPeerConnection...');
+      this.broadcasterQueuedCandidates = [];
 
       this.senderPC = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ],
+        iceServers: ICE_SERVERS,
         iceCandidatePoolSize: 2
       });
 
+      // Diagnostics & state listeners
+      this.senderPC.onsignalingstatechange = () => {
+        console.log('[WebRTC Broadcaster] signalingState:', this.senderPC?.signalingState);
+      };
+
+      this.senderPC.oniceconnectionstatechange = () => {
+        console.log('[WebRTC Broadcaster] iceConnectionState:', this.senderPC?.iceConnectionState);
+      };
+
+      this.senderPC.onconnectionstatechange = () => {
+        console.log('[WebRTC Broadcaster] connectionState:', this.senderPC?.connectionState);
+      };
+
+      this.senderPC.onicegatheringstatechange = () => {
+        console.log('[WebRTC Broadcaster] iceGatheringState:', this.senderPC?.iceGatheringState);
+      };
+
       // Add camera video tracks to connection
-      this.stream.getTracks().forEach((track) => {
-        this.senderPC.addTrack(track, this.stream);
+      const videoTracks = this.stream.getVideoTracks().filter((t) => t.readyState === 'live');
+      if (videoTracks.length === 0) {
+        console.warn('[WebRTC Broadcaster] Warning: No live video tracks found in stream!');
+      }
+
+      videoTracks.forEach((track) => {
+        const sender = this.senderPC.addTrack(track, this.stream);
+        console.log('[WebRTC Broadcaster] Added track to senderPC:', track.kind, track.id, 'Sender confirmed:', Boolean(sender));
       });
+
+      console.log(
+        '[WebRTC Broadcaster] Active senders count:',
+        this.senderPC.getSenders().length,
+        this.senderPC.getSenders().map((s) => ({
+          kind: s.track?.kind,
+          id: s.track?.id,
+          readyState: s.track?.readyState
+        }))
+      );
 
       // Send local ICE candidates to Admin receiver
       this.senderPC.onicecandidate = (event) => {
         if (event.candidate) {
+          const candidateData = event.candidate.toJSON ? event.candidate.toJSON() : event.candidate;
+          console.log('[WebRTC Broadcaster] Gathered local ICE candidate:', candidateData.candidate?.substring(0, 45) + '...');
           this.sendSignaling({
             type: 'ICE_CANDIDATE',
             origin: 'broadcaster',
-            candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate
+            candidate: candidateData
           });
+        } else {
+          console.log('[WebRTC Broadcaster] ICE candidate gathering complete (candidate=null).');
         }
-      };
-
-      this.senderPC.oniceconnectionstatechange = () => {
-        console.log('[WebRTC Broadcaster] ICE connection state:', this.senderPC.iceConnectionState);
       };
 
       // Create and send SDP Offer
@@ -251,7 +353,10 @@ class WebRTCService {
         offerToReceiveAudio: false,
         offerToReceiveVideo: false
       });
+
+      console.log('[WebRTC Broadcaster] Offer created. Contains m=video:', offer.sdp?.includes('m=video'));
       await this.senderPC.setLocalDescription(offer);
+      console.log('[WebRTC Broadcaster] Local description set (offer). signalingState:', this.senderPC.signalingState);
 
       this.sendSignaling({
         type: 'RTC_OFFER',
@@ -259,25 +364,36 @@ class WebRTCService {
       });
     } catch (err) {
       console.error('[WebRTC Broadcaster] Error creating offer:', err);
+    } finally {
+      this.isNegotiating = false;
     }
   }
 
   async handleRemoteAnswer(sdp) {
-    if (!this.senderPC) return;
-    try {
-      await this.senderPC.setRemoteDescription(new RTCSessionDescription(sdp));
-      this.hasRemoteDescription = true;
+    if (!this.senderPC) {
+      console.warn('[WebRTC Broadcaster] Cannot set remote answer: senderPC is null');
+      return;
+    }
 
-      // Drain any queued candidates that arrived before the answer
-      while (this.queuedCandidates.length > 0) {
-        const cand = this.queuedCandidates.shift();
+    try {
+      if (this.senderPC.signalingState !== 'have-local-offer') {
+        console.warn(`[WebRTC Broadcaster] Unexpected signalingState for answer: ${this.senderPC.signalingState}. Ignoring.`);
+        return;
+      }
+
+      await this.senderPC.setRemoteDescription(new RTCSessionDescription(sdp));
+      console.log('[WebRTC Broadcaster] Remote answer applied successfully! signalingState:', this.senderPC.signalingState);
+
+      // Drain queued candidates that arrived before the answer was set
+      while (this.broadcasterQueuedCandidates.length > 0) {
+        const cand = this.broadcasterQueuedCandidates.shift();
         try {
           await this.senderPC.addIceCandidate(new RTCIceCandidate(cand));
+          console.log('[WebRTC Broadcaster] Drained queued ICE candidate successfully.');
         } catch (e) {
-          console.warn('[WebRTC Broadcaster] Queued candidate error:', e);
+          console.warn('[WebRTC Broadcaster] Error applying queued candidate:', e);
         }
       }
-      console.log('[WebRTC Broadcaster] Remote answer set successfully. WebRTC connected!');
     } catch (err) {
       console.error('[WebRTC Broadcaster] Error setting remote answer:', err);
     }
@@ -298,6 +414,8 @@ class WebRTCService {
     }
     this.stream = null;
     this.role = null;
+    this.isNegotiating = false;
+    this.broadcasterQueuedCandidates = [];
   }
 
   // =========================================================================
@@ -309,7 +427,7 @@ class WebRTCService {
     this.videoElement = videoElement;
     this.onStatusChange = onStatusChange;
 
-    // Check if stream already arrived or is active in same runtime (e.g. SPA)
+    // Check if stream already arrived or is active in same runtime (e.g. single tab SPA test)
     if (this.remoteStream && this.remoteStream.active) {
       this.attachStreamToVideo(this.remoteStream);
       if (this.onStatusChange) this.onStatusChange(true, this.remoteStream);
@@ -319,92 +437,139 @@ class WebRTCService {
     // Request stream from broadcaster immediately
     this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
 
-    // Retry requesting stream every 1.5s until stream arrives
+    // Retry requesting stream periodically until stream arrives
     if (this.requestRetryTimer) clearInterval(this.requestRetryTimer);
     this.requestRetryTimer = setInterval(() => {
       if (!this.remoteStream || !this.remoteStream.active) {
+        console.log('[WebRTC Receiver] Stream not active yet, sending RTC_REQUEST_STREAM retry...');
         this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
       } else {
         clearInterval(this.requestRetryTimer);
         this.requestRetryTimer = null;
       }
-    }, 1500);
+    }, 2500);
   }
 
   async handleRemoteOffer(sdp) {
+    if (this.role !== 'RECEIVER') return;
+
     try {
+      // Guard: If we already have a connected receiverPC and live stream, do not tear down
       if (this.receiverPC) {
+        const ice = this.receiverPC.iceConnectionState;
+        const conn = this.receiverPC.connectionState;
+        if ((ice === 'connected' || conn === 'connected') && this.remoteStream && this.remoteStream.active) {
+          console.log('[WebRTC Receiver] Already actively connected and streaming. Ignoring duplicate offer.');
+          return;
+        }
+
         try { this.receiverPC.close(); } catch (e) {}
+        this.receiverPC = null;
       }
 
-      this.queuedCandidates = [];
-      this.hasRemoteDescription = false;
-
+      console.log('[WebRTC Receiver] Creating new receiver RTCPeerConnection...');
       this.receiverPC = new RTCPeerConnection({
-        iceServers: [
-          { urls: 'stun:stun.l.google.com:19302' },
-          { urls: 'stun:stun1.l.google.com:19302' }
-        ],
+        iceServers: ICE_SERVERS,
         iceCandidatePoolSize: 2
       });
 
-      // Attach incoming media track directly to Admin video element
+      // Diagnostics & state listeners
+      this.receiverPC.onsignalingstatechange = () => {
+        console.log('[WebRTC Receiver] signalingState:', this.receiverPC?.signalingState);
+      };
+
+      this.receiverPC.oniceconnectionstatechange = () => {
+        console.log('[WebRTC Receiver] iceConnectionState:', this.receiverPC?.iceConnectionState);
+        if (this.receiverPC?.iceConnectionState === 'connected' || this.receiverPC?.iceConnectionState === 'completed') {
+          if (this.onStatusChange) this.onStatusChange(true, this.remoteStream);
+        } else if (this.receiverPC?.iceConnectionState === 'disconnected' || this.receiverPC?.iceConnectionState === 'failed') {
+          console.warn('[WebRTC Receiver] ICE disconnected/failed. Re-requesting stream...');
+          this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
+        }
+      };
+
+      this.receiverPC.onconnectionstatechange = () => {
+        console.log('[WebRTC Receiver] connectionState:', this.receiverPC?.connectionState);
+      };
+
+      this.receiverPC.onicegatheringstatechange = () => {
+        console.log('[WebRTC Receiver] iceGatheringState:', this.receiverPC?.iceGatheringState);
+      };
+
+      // Unified Plan ontrack: handle both stream-based and track-only payloads
       this.receiverPC.ontrack = (event) => {
-        console.log('[WebRTC Receiver] Incoming video track received!', event);
-        if (event.streams && event.streams[0]) {
-          const remoteStream = event.streams[0];
-          this.remoteStream = remoteStream;
-          this.attachStreamToVideo(remoteStream);
+        console.log('[WebRTC Receiver] Incoming video track received!', {
+          kind: event.track?.kind,
+          id: event.track?.id,
+          readyState: event.track?.readyState,
+          streamsCount: event.streams ? event.streams.length : 0
+        });
 
-          if (this.requestRetryTimer) {
-            clearInterval(this.requestRetryTimer);
-            this.requestRetryTimer = null;
+        let stream = event.streams && event.streams[0] ? event.streams[0] : null;
+        if (!stream) {
+          console.log('[WebRTC Receiver] event.streams[0] not present; assembling MediaStream from track');
+          if (!this.remoteStream) {
+            this.remoteStream = new MediaStream();
           }
+          this.remoteStream.addTrack(event.track);
+          stream = this.remoteStream;
+        } else {
+          this.remoteStream = stream;
+        }
 
-          if (this.onStatusChange) {
-            this.onStatusChange(true, remoteStream);
-          }
+        const videoTracks = stream.getVideoTracks();
+        console.log(
+          '[WebRTC Receiver] Remote stream video tracks count:',
+          videoTracks.length,
+          videoTracks.map((t) => ({ id: t.id, readyState: t.readyState, enabled: t.enabled }))
+        );
+
+        if (this.requestRetryTimer) {
+          clearInterval(this.requestRetryTimer);
+          this.requestRetryTimer = null;
+        }
+
+        this.attachStreamToVideo(stream);
+
+        if (this.onStatusChange) {
+          this.onStatusChange(true, stream);
         }
       };
 
       // Send local ICE candidates to Broadcaster
       this.receiverPC.onicecandidate = (event) => {
         if (event.candidate) {
+          const candidateData = event.candidate.toJSON ? event.candidate.toJSON() : event.candidate;
+          console.log('[WebRTC Receiver] Gathered local ICE candidate:', candidateData.candidate?.substring(0, 45) + '...');
           this.sendSignaling({
             type: 'ICE_CANDIDATE',
             origin: 'receiver',
-            candidate: event.candidate.toJSON ? event.candidate.toJSON() : event.candidate
+            candidate: candidateData
           });
-        }
-      };
-
-      this.receiverPC.oniceconnectionstatechange = () => {
-        console.log('[WebRTC Receiver] ICE connection state:', this.receiverPC.iceConnectionState);
-        if (this.receiverPC.iceConnectionState === 'connected' || this.receiverPC.iceConnectionState === 'completed') {
-          if (this.onStatusChange) this.onStatusChange(true, this.remoteStream);
-        } else if (this.receiverPC.iceConnectionState === 'disconnected' || this.receiverPC.iceConnectionState === 'failed') {
-          console.warn('[WebRTC Receiver] ICE disconnected. Re-requesting stream...');
-          this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
+        } else {
+          console.log('[WebRTC Receiver] ICE candidate gathering complete (candidate=null).');
         }
       };
 
       // Set Remote Description (the Offer from Deaf page)
       await this.receiverPC.setRemoteDescription(new RTCSessionDescription(sdp));
-      this.hasRemoteDescription = true;
+      console.log('[WebRTC Receiver] Remote description set (offer). signalingState:', this.receiverPC.signalingState);
 
-      // Drain any queued candidates that arrived before the offer was set
-      while (this.queuedCandidates.length > 0) {
-        const cand = this.queuedCandidates.shift();
+      // Drain queued candidates that arrived before the offer was set
+      while (this.receiverQueuedCandidates.length > 0) {
+        const cand = this.receiverQueuedCandidates.shift();
         try {
           await this.receiverPC.addIceCandidate(new RTCIceCandidate(cand));
+          console.log('[WebRTC Receiver] Drained queued candidate successfully.');
         } catch (e) {
-          console.warn('[WebRTC Receiver] Queued candidate error:', e);
+          console.warn('[WebRTC Receiver] Error draining queued candidate:', e);
         }
       }
 
       // Create and send SDP Answer back to Deaf page
       const answer = await this.receiverPC.createAnswer();
       await this.receiverPC.setLocalDescription(answer);
+      console.log('[WebRTC Receiver] Local answer created and set. signalingState:', this.receiverPC.signalingState);
 
       this.sendSignaling({
         type: 'RTC_ANSWER',
@@ -416,27 +581,52 @@ class WebRTCService {
   }
 
   attachStreamToVideo(stream) {
-    if (!this.videoElement || !stream) return;
+    if (!stream) return;
+
+    // Look up live element if cached reference is detached or null
+    let el = this.videoElement;
+    if (!el || !el.isConnected) {
+      if (typeof document !== 'undefined') {
+        el = document.getElementById('admin-camera-video');
+        if (el) this.videoElement = el;
+      }
+    }
+
+    if (!el) {
+      console.warn('[WebRTC Receiver] No DOM video element found to attach stream');
+      return;
+    }
+
     console.log('[WebRTC Receiver] Attaching stream to Admin video element:', stream.id);
 
-    this.videoElement.srcObject = stream;
-    this.videoElement.autoplay = true;
-    this.videoElement.playsInline = true;
-    this.videoElement.muted = true;
-    this.videoElement.style.transform = 'none'; // Un-mirrored for Admin view
-    this.videoElement.style.objectFit = 'cover';
+    // Guaranteed autoplay configuration
+    el.autoplay = true;
+    el.playsInline = true;
+    el.muted = true;
+    el.defaultMuted = true;
+    el.setAttribute('autoplay', '');
+    el.setAttribute('playsinline', '');
+    el.setAttribute('muted', '');
+    el.style.transform = 'none'; // Un-mirrored for Admin view
+    el.style.objectFit = 'cover';
 
-    const playPromise = this.videoElement.play();
+    if (el.srcObject !== stream) {
+      el.srcObject = stream;
+      console.log('[WebRTC Receiver] Assigned srcObject to video element successfully');
+    }
+
+    const playPromise = el.play();
     if (playPromise !== undefined) {
       playPromise
         .then(() => {
-          console.log('[WebRTC Receiver] Admin video playback started successfully!');
+          console.log('[WebRTC Receiver] Admin video playback started successfully! Dimensions:', el.videoWidth, 'x', el.videoHeight);
           if (this.onStatusChange) this.onStatusChange(true, stream);
         })
         .catch((err) => {
           console.warn('[WebRTC Receiver] Auto-play was prevented, retrying muted...', err);
-          this.videoElement.muted = true;
-          this.videoElement.play().catch(() => {});
+          el.muted = true;
+          el.defaultMuted = true;
+          el.play().catch(() => {});
         });
     }
   }
@@ -461,26 +651,36 @@ class WebRTCService {
     this.remoteStream = null;
     this.onStatusChange = null;
     this.role = null;
+    this.receiverQueuedCandidates = [];
   }
 
   // =========================================================================
   // 3. CANDIDATE QUEUE DISPATCHER
   // =========================================================================
   async handleIncomingIceCandidate(data) {
-    if (!data.candidate) return;
+    if (!data || !data.candidate) return;
 
-    const targetPC = data.origin === 'broadcaster' ? this.receiverPC : this.senderPC;
-    const isTargetReady = targetPC && targetPC.remoteDescription && targetPC.remoteDescription.type;
+    // Deterministic target selection based on this peer's role
+    const targetPC = this.role === 'RECEIVER' ? this.receiverPC : this.senderPC;
+    const queue = this.role === 'RECEIVER' ? this.receiverQueuedCandidates : this.broadcasterQueuedCandidates;
 
-    if (isTargetReady) {
+    if (!targetPC) {
+      console.log(`[WebRTC ${this.role || 'PEER'}] Target PC not ready yet; queuing ICE candidate`);
+      queue.push(data.candidate);
+      return;
+    }
+
+    const hasRemote = targetPC.remoteDescription && targetPC.remoteDescription.type;
+    if (hasRemote) {
       try {
         await targetPC.addIceCandidate(new RTCIceCandidate(data.candidate));
+        console.log(`[WebRTC ${this.role}] Added ICE candidate successfully`);
       } catch (err) {
-        console.warn('[WebRTC] addIceCandidate error:', err);
+        console.warn(`[WebRTC ${this.role}] addIceCandidate error:`, err);
       }
     } else {
-      // Queue candidate until setRemoteDescription finishes
-      this.queuedCandidates.push(data.candidate);
+      console.log(`[WebRTC ${this.role}] Remote description not set yet; queuing ICE candidate`);
+      queue.push(data.candidate);
     }
   }
 
