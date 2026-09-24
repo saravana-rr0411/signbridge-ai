@@ -222,3 +222,52 @@ def test_predict_sequence_v6_10_sign(client):
     res_bad = client.post("/predict/sequence/v6-10-sign", json={"frames": invalid_seq})
     assert res_bad.status_code == 422
 
+
+# ============================================================================
+# CORS CONTRACT TESTS: Production Vercel Origin & Preflight Validation
+# ============================================================================
+
+def test_cors_production_origin_health(client):
+    """Test GET /health allows the exact production frontend origin https://signbridge-ai-kappa.vercel.app."""
+    prod_origin = "https://signbridge-ai-kappa.vercel.app"
+    res = client.get("/health", headers={"Origin": prod_origin})
+    assert res.status_code == 200
+    assert res.headers.get("access-control-allow-origin") == prod_origin
+
+
+def test_cors_preflight_production_origin(client):
+    """Test OPTIONS preflight for POST /predict/sequence/v6-10-sign allows production origin."""
+    prod_origin = "https://signbridge-ai-kappa.vercel.app"
+    headers = {
+        "Origin": prod_origin,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+    }
+    res = client.options("/predict/sequence/v6-10-sign", headers=headers)
+    assert res.status_code == 200
+    assert res.headers.get("access-control-allow-origin") == prod_origin
+    allow_methods = res.headers.get("access-control-allow-methods", "")
+    assert "POST" in allow_methods
+    assert "OPTIONS" in allow_methods
+
+
+def test_cors_localhost_origin(client):
+    """Test GET /health allows localhost origins."""
+    local_origin = "http://localhost:5173"
+    res = client.get("/health", headers={"Origin": local_origin})
+    assert res.status_code == 200
+    assert res.headers.get("access-control-allow-origin") == local_origin
+
+
+def test_cors_disallowed_origin(client):
+    """Test that unauthorized origins are rejected on preflight."""
+    bad_origin = "https://unauthorized-attacker-site.com"
+    headers = {
+        "Origin": bad_origin,
+        "Access-Control-Request-Method": "POST",
+        "Access-Control-Request-Headers": "content-type",
+    }
+    res = client.options("/predict/sequence/v6-10-sign", headers=headers)
+    assert res.status_code == 400
+
+

@@ -51,23 +51,24 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# CORS Configuration: allow Vite frontend origins
-allowed_origins_env = os.getenv("CORS_ORIGINS")
-if allowed_origins_env:
-    allowed_origins = [orig.strip() for orig in allowed_origins_env.split(",") if orig.strip()]
-else:
-    allowed_origins = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000"
-    ]
+# CORS Configuration: allow production Vercel frontend and local development origins
+DEFAULT_ALLOWED_ORIGINS = [
+    "https://signbridge-ai-kappa.vercel.app",
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+    "http://localhost:3000",
+    "http://127.0.0.1:3000",
+]
+
+allowed_origins_env = os.getenv("CORS_ORIGINS", "")
+extra_origins = [orig.strip() for orig in allowed_origins_env.split(",") if orig.strip()]
+allowed_origins = list(dict.fromkeys(DEFAULT_ALLOWED_ORIGINS + extra_origins))
 
 app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_origin_regex=r"^https?://(localhost|127\.0\.0\.1)(:\d+)?$",
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["GET", "POST", "OPTIONS"],
     allow_headers=["*"],
 )
