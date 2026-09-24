@@ -41,14 +41,26 @@ Ensure the trained PyTorch checkpoints are present:
 
 ## 3. Backend Startup Command
 
-Run the FastAPI Uvicorn ASGI server:
+### 3.1 Local Development
+Run the FastAPI Uvicorn ASGI server locally:
 ```bash
-./backend/venv/bin/uvicorn backend.app.main:app --host 127.0.0.1 --port 8000 --reload
+./backend/venv/bin/uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
-To run bound to all network interfaces:
+Or run directly:
 ```bash
-./backend/venv/bin/uvicorn backend.app.main:app --host 0.0.0.0 --port 8000
+python backend/app/main.py
 ```
+
+### 3.2 Production Deployment (Render)
+Render dynamically assigns a port via the `$PORT` environment variable.
+- **Render Build Command:**
+  ```bash
+  pip install -r backend/requirements.txt
+  ```
+- **Render Start Command:**
+  ```bash
+  uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+  ```
 
 ---
 

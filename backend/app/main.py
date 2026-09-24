@@ -369,3 +369,11 @@ async def websocket_relay_endpoint(websocket: WebSocket, room_id: str, client_ro
         manager.disconnect(room_id, role, websocket)
         await manager.notify_disconnect(room_id, role)
 
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    host = os.environ.get("HOST", "0.0.0.0")
+    print(f"[SignBridge FastAPI] Starting production server on {host}:{port}...")
+    uvicorn.run(app, host=host, port=port)
+
