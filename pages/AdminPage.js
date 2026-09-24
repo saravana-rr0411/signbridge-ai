@@ -524,7 +524,7 @@ export function initAdminPage() {
     speechService.stop();
     adminTtsService.stop();
     unsubTtsState();
-    cameraService.disconnectAdminFeed();
+    cameraService.disconnectAdminFeed('admin_page_unmount');
     unsubRecog();
     unsubHosp();
     unsubConv();

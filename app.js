@@ -89,7 +89,7 @@ class AppRouter {
     if (logoutBtn) {
       logoutBtn.addEventListener('click', (e) => {
         e.preventDefault();
-        cameraService.stopCamera();
+        cameraService.stopCamera('user_logged_out');
         sessionStore.logout();
         window.location.hash = '#/login';
         this.showToast('Session ended. You have been logged out.');

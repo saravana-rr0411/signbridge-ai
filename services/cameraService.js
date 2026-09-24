@@ -58,7 +58,7 @@ class CameraService {
           videoElement.play().catch(() => {});
         }
         // Ensure WebRTC peer relay is published even when reusing stream
-        webrtcService.publishStream(this.stream);
+        webrtcService.publishStream(this.stream, 'cameraService.startCamera_reuse');
         return { success: true, stream: this.stream };
       }
     }
@@ -95,7 +95,7 @@ class CameraService {
       }
 
       // Publish outgoing stream to WebRTC service for cross-window Admin relay
-      webrtcService.publishStream(stream);
+      webrtcService.publishStream(stream, 'cameraService.startCamera_fresh');
 
       this.notify();
       return { success: true, stream };
@@ -122,9 +122,9 @@ class CameraService {
   }
 
   // 2. STOP CAMERA & CLEANUP TRACKS (CALLED ON UNMOUNT)
-  stopCamera() {
-    // Unpublish from WebRTC service
-    webrtcService.unpublishStream();
+  stopCamera(reason = 'cameraService.stopCamera') {
+    // Unpublish from WebRTC service with exact caller and reason
+    webrtcService.unpublishStream('cameraService.stopCamera', reason);
 
     if (this.stream) {
       this.stream.getTracks().forEach((track) => {
@@ -166,8 +166,8 @@ class CameraService {
     });
   }
 
-  disconnectAdminFeed() {
-    webrtcService.unsubscribeStream();
+  disconnectAdminFeed(reason = 'cameraService.disconnectAdminFeed') {
+    webrtcService.unsubscribeStream(reason);
   }
 
   getStream() {

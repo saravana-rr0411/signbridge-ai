@@ -152,7 +152,7 @@ export function initDeafPage() {
 
   // STOP CAMERA: Stop all tracks, clear srcObject, stop MediaPipe processing, reset feature buffer, remove overlays
   function stopLiveCamera() {
-    cameraService.stopCamera();
+    cameraService.stopCamera('user_clicked_stop_camera');
     signRecognitionService.stopRecognition();
     handTrackingDebugService.detach();
     landmarkPipelineService.reset();
@@ -503,7 +503,7 @@ export function initDeafPage() {
     communicationService.disconnect();
 
     // Stop all active camera tracks so webcam light turns off
-    cameraService.stopCamera();
+    cameraService.stopCamera('deaf_page_unmount');
     handTrackingDebugService.detach();
     landmarkPipelineService.reset();
     signRecognitionService.stopRecognition();
