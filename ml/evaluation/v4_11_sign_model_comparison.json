@@ -1,0 +1,370 @@
+{
+  "evaluation_timestamp": "2026-09-24 22:34:39",
+  "test_dataset": {
+    "total_test_samples": 83,
+    "unique_test_signers": 12,
+    "cross_split_signer_overlap": 0,
+    "class_distribution_test": {
+      "hello": 4,
+      "help": 8,
+      "yes": 8,
+      "no": 10,
+      "please": 8,
+      "thank_you": 1,
+      "doctor": 10,
+      "pain": 6,
+      "sick": 11,
+      "bathroom": 11,
+      "where": 6
+    }
+  },
+  "v4_11_sign_model": {
+    "checkpoint": "ml/models/dynamic_bigru_v4_11_sign.pt",
+    "parameters": 181515,
+    "model_size_kb": 2151.6,
+    "latency": {
+      "mean_ms": 0.76,
+      "median_ms": 0.76,
+      "p95_ms": 0.79,
+      "min_ms": 0.72,
+      "max_ms": 0.84,
+      "throughput_fps": 1308.9
+    },
+    "overall_accuracy": 81.93,
+    "macro_precision": 82.44,
+    "macro_recall": 86.12,
+    "macro_f1": 80.05,
+    "weighted_f1": 83.8,
+    "mean_confidence": 91.3,
+    "percentage_above_70_conf": 89.16,
+    "per_class_metrics": {
+      "hello": {
+        "class_id": 0,
+        "support": 4,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "mean_confidence": 99.81,
+        "pct_above_70": 100.0
+      },
+      "help": {
+        "class_id": 1,
+        "support": 8,
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1": 1.0,
+        "mean_confidence": 99.93,
+        "pct_above_70": 100.0
+      },
+      "yes": {
+        "class_id": 2,
+        "support": 8,
+        "precision": 0.7778,
+        "recall": 0.875,
+        "f1": 0.8235,
+        "mean_confidence": 92.34,
+        "pct_above_70": 87.5
+      },
+      "no": {
+        "class_id": 3,
+        "support": 10,
+        "precision": 1.0,
+        "recall": 0.8,
+        "f1": 0.8889,
+        "mean_confidence": 84.07,
+        "pct_above_70": 80.0
+      },
+      "please": {
+        "class_id": 4,
+        "support": 8,
+        "precision": 0.8333,
+        "recall": 0.625,
+        "f1": 0.7143,
+        "mean_confidence": 95.4,
+        "pct_above_70": 87.5
+      },
+      "thank_you": {
+        "class_id": 5,
+        "support": 1,
+        "precision": 0.1429,
+        "recall": 1.0,
+        "f1": 0.25,
+        "mean_confidence": 99.88,
+        "pct_above_70": 100.0
+      },
+      "doctor": {
+        "class_id": 6,
+        "support": 10,
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1": 0.9474,
+        "mean_confidence": 94.02,
+        "pct_above_70": 100.0
+      },
+      "pain": {
+        "class_id": 7,
+        "support": 6,
+        "precision": 0.8571,
+        "recall": 1.0,
+        "f1": 0.9231,
+        "mean_confidence": 99.83,
+        "pct_above_70": 100.0
+      },
+      "sick": {
+        "class_id": 8,
+        "support": 11,
+        "precision": 1.0,
+        "recall": 0.7273,
+        "f1": 0.8421,
+        "mean_confidence": 89.75,
+        "pct_above_70": 90.91
+      },
+      "bathroom": {
+        "class_id": 9,
+        "support": 11,
+        "precision": 0.8571,
+        "recall": 0.5455,
+        "f1": 0.6667,
+        "mean_confidence": 80.72,
+        "pct_above_70": 72.73
+      },
+      "where": {
+        "class_id": 10,
+        "support": 6,
+        "precision": 0.6,
+        "recall": 1.0,
+        "f1": 0.75,
+        "mean_confidence": 87.03,
+        "pct_above_70": 83.33
+      }
+    },
+    "original_6_signs_performance": {
+      "support": 39,
+      "accuracy": 84.62,
+      "macro_f1": 82.28
+    },
+    "new_5_signs_performance": {
+      "support": 44,
+      "accuracy": 79.55,
+      "macro_f1": 85.12
+    },
+    "confusion_pairs": [
+      {
+        "pair": "BATHROOM vs YES",
+        "bath_as_yes": 2,
+        "yes_as_bath": 0
+      },
+      {
+        "pair": "DOCTOR vs HELP",
+        "doc_as_help": 0,
+        "help_as_doc": 0
+      }
+    ],
+    "actual_confusions": [
+      {
+        "true_class": "yes",
+        "pred_class": "please",
+        "count": 1
+      },
+      {
+        "true_class": "no",
+        "pred_class": "pain",
+        "count": 1
+      },
+      {
+        "true_class": "no",
+        "pred_class": "where",
+        "count": 1
+      },
+      {
+        "true_class": "please",
+        "pred_class": "thank_you",
+        "count": 3
+      },
+      {
+        "true_class": "doctor",
+        "pred_class": "bathroom",
+        "count": 1
+      },
+      {
+        "true_class": "sick",
+        "pred_class": "thank_you",
+        "count": 3
+      },
+      {
+        "true_class": "bathroom",
+        "pred_class": "yes",
+        "count": 2
+      },
+      {
+        "true_class": "bathroom",
+        "pred_class": "where",
+        "count": 3
+      }
+    ],
+    "confusion_matrix": [
+      [
+        4,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        8,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        7,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        8,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        1
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        5,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        1,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        9,
+        0,
+        0,
+        1,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        3,
+        0,
+        0,
+        8,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        2,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6,
+        3
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        6
+      ]
+    ]
+  },
+  "v3_six_sign_model": {
+    "checkpoint": "ml/models/dynamic_bigru_v3_six_sign.pt",
+    "parameters": 181190,
+    "model_size_kb": 2147.9,
+    "latency": {
+      "mean_ms": 0.76,
+      "median_ms": 0.76,
+      "p95_ms": 0.78,
+      "min_ms": 0.74,
+      "max_ms": 0.82,
+      "throughput_fps": 1311.6
+    },
+    "subset_support": 39,
+    "accuracy": 92.31,
+    "macro_f1": 86.74,
+    "weighted_f1": 94.18,
+    "mean_confidence": 97.24,
+    "percentage_above_70_conf": 94.87
+  }
+}

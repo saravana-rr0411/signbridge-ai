@@ -1,0 +1,232 @@
+{
+  "timestamp": "2026-09-24 23:23:34",
+  "model_version": "v5_10_sign",
+  "vocabulary_10": [
+    "HELLO",
+    "HELP",
+    "YES",
+    "NO",
+    "PLEASE",
+    "THANK_YOU",
+    "DOCTOR",
+    "PAIN",
+    "SICK",
+    "WHERE"
+  ],
+  "excluded_classes": [
+    "BATHROOM"
+  ],
+  "dataset_split": {
+    "total": 426,
+    "train": 272,
+    "val": 69,
+    "test": 85,
+    "unique_signers": 105,
+    "signer_overlap": 0
+  },
+  "training_metrics": {
+    "best_epoch": 13,
+    "best_val_loss": 0.4481,
+    "best_val_accuracy": 86.96,
+    "total_epochs": 38
+  },
+  "test_metrics": {
+    "accuracy": 74.12,
+    "macro_precision": 74.33,
+    "macro_recall": 80.48,
+    "macro_f1": 73.07,
+    "weighted_f1": 74.82,
+    "mean_confidence": 81.82,
+    "pct_above_70": 71.76
+  },
+  "inference_latency": {
+    "mean_ms": 0.76,
+    "median_ms": 0.75,
+    "p95_ms": 0.77,
+    "min_ms": 0.72,
+    "max_ms": 0.79,
+    "throughput_fps": 1324.0
+  },
+  "per_class_results": {
+    "HELLO": {
+      "class_id": 0,
+      "support": 4,
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1": 1.0,
+      "mean_confidence": 98.53,
+      "pct_above_70": 100.0
+    },
+    "HELP": {
+      "class_id": 1,
+      "support": 8,
+      "precision": 0.8889,
+      "recall": 1.0,
+      "f1": 0.9412,
+      "mean_confidence": 99.77,
+      "pct_above_70": 100.0
+    },
+    "YES": {
+      "class_id": 2,
+      "support": 8,
+      "precision": 0.7273,
+      "recall": 1.0,
+      "f1": 0.8421,
+      "mean_confidence": 95.3,
+      "pct_above_70": 100.0
+    },
+    "NO": {
+      "class_id": 3,
+      "support": 13,
+      "precision": 0.625,
+      "recall": 0.3846,
+      "f1": 0.4762,
+      "mean_confidence": 64.71,
+      "pct_above_70": 38.46
+    },
+    "PLEASE": {
+      "class_id": 4,
+      "support": 13,
+      "precision": 0.8889,
+      "recall": 0.6154,
+      "f1": 0.7273,
+      "mean_confidence": 80.84,
+      "pct_above_70": 76.92
+    },
+    "THANK_YOU": {
+      "class_id": 5,
+      "support": 1,
+      "precision": 0.125,
+      "recall": 1.0,
+      "f1": 0.2222,
+      "mean_confidence": 99.5,
+      "pct_above_70": 100.0
+    },
+    "DOCTOR": {
+      "class_id": 6,
+      "support": 10,
+      "precision": 0.9091,
+      "recall": 1.0,
+      "f1": 0.9524,
+      "mean_confidence": 86.39,
+      "pct_above_70": 80.0
+    },
+    "PAIN": {
+      "class_id": 7,
+      "support": 6,
+      "precision": 0.8333,
+      "recall": 0.8333,
+      "f1": 0.8333,
+      "mean_confidence": 83.23,
+      "pct_above_70": 66.67
+    },
+    "SICK": {
+      "class_id": 8,
+      "support": 14,
+      "precision": 0.7692,
+      "recall": 0.7143,
+      "f1": 0.7407,
+      "mean_confidence": 89.44,
+      "pct_above_70": 92.86
+    },
+    "WHERE": {
+      "class_id": 9,
+      "support": 8,
+      "precision": 0.6667,
+      "recall": 0.5,
+      "f1": 0.5714,
+      "mean_confidence": 49.11,
+      "pct_above_70": 0.0
+    }
+  },
+  "confusion_pairs": [
+    {
+      "true_class": "NO",
+      "pred_class": "YES",
+      "count": 3
+    },
+    {
+      "true_class": "NO",
+      "pred_class": "PLEASE",
+      "count": 1
+    },
+    {
+      "true_class": "NO",
+      "pred_class": "DOCTOR",
+      "count": 1
+    },
+    {
+      "true_class": "NO",
+      "pred_class": "PAIN",
+      "count": 1
+    },
+    {
+      "true_class": "NO",
+      "pred_class": "WHERE",
+      "count": 2
+    },
+    {
+      "true_class": "PLEASE",
+      "pred_class": "THANK_YOU",
+      "count": 3
+    },
+    {
+      "true_class": "PLEASE",
+      "pred_class": "SICK",
+      "count": 2
+    },
+    {
+      "true_class": "PAIN",
+      "pred_class": "HELP",
+      "count": 1
+    },
+    {
+      "true_class": "SICK",
+      "pred_class": "THANK_YOU",
+      "count": 4
+    },
+    {
+      "true_class": "WHERE",
+      "pred_class": "NO",
+      "count": 3
+    },
+    {
+      "true_class": "WHERE",
+      "pred_class": "SICK",
+      "count": 1
+    }
+  ],
+  "subsets": {
+    "original_six_signs": {
+      "classes": [
+        "HELLO",
+        "HELP",
+        "YES",
+        "NO",
+        "PLEASE",
+        "THANK_YOU"
+      ],
+      "support": 47,
+      "v5_accuracy": 72.34,
+      "v5_macro_f1": 75.42,
+      "v3_accuracy": 76.6,
+      "v3_macro_f1": 74.53
+    },
+    "four_new_classes": {
+      "classes": [
+        "DOCTOR",
+        "PAIN",
+        "SICK",
+        "WHERE"
+      ],
+      "support": 38,
+      "v5_accuracy": 76.32,
+      "v5_macro_f1": 84.39
+    }
+  },
+  "checkpoint_hashes": {
+    "v2_sha256": "24917cdfb4f6835beb6405463f29e0ef34172596aea02495c70f00d93149b8ec",
+    "v3_sha256": "1ecce3db8c41d40c6e3a8b7c061ee9708ad6cafe982a22d882021a9c21128469",
+    "v5_sha256": "404c202c80f9ce298ee54aaa085f594c75ffcf8b065ec0334723c3d580b44f37"
+  }
+}

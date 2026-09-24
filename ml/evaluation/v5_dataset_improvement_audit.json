@@ -1,0 +1,339 @@
+{
+  "audit_timestamp": "2026-09-24 22:45:00 UTC",
+  "audit_scope": "V5 Dataset Improvement & Audit Plan for 4 Weak Signs",
+  "target_weak_signs": [
+    "NO",
+    "PLEASE",
+    "SICK",
+    "WHERE"
+  ],
+  "policy_decisions": {
+    "bathroom_exclusion": {
+      "action": "TEMPORARILY_EXCLUDE_FROM_V5",
+      "justification": "Achieved only 20.0% live empirical accuracy in Round 2. Causes severe bilateral confusion with WHERE (lateral oscillation collision) and YES (closed-fist posture collision). Removing BATHROOM decouples WHERE from its primary confusion pair."
+    },
+    "v5_target_vocabulary": [
+      "HELLO",
+      "HELP",
+      "YES",
+      "NO",
+      "PLEASE",
+      "THANK_YOU",
+      "DOCTOR",
+      "PAIN",
+      "SICK",
+      "WHERE"
+    ],
+    "target_vocabulary_size": 10,
+    "confidence_threshold": 0.70,
+    "input_pipeline": "30 frames x 168 features"
+  },
+  "current_audit_summary": {
+    "NO": {
+      "current_usable_samples": 48,
+      "unique_signers": 36,
+      "signer_distribution": {
+        "top_signers": {
+          "wlasl_signer_5": 3,
+          "msasl_signer_144": 3,
+          "wlasl_signer_10": 2,
+          "msasl_signer_94": 2
+        }
+      },
+      "current_splits": {
+        "train": 28,
+        "val": 10,
+        "test": 10
+      },
+      "source_breakdown": {
+        "MS-ASL": 31,
+        "WLASL": 16,
+        "Public Educational ASL (Start ASL)": 1
+      },
+      "frame_count_stats": {
+        "mean": 91.5,
+        "min": 22,
+        "max": 327
+      },
+      "hand_detection_quality": {
+        "mean_coverage_pct": 77.1,
+        "min_coverage_pct": 26.7
+      },
+      "problematic_samples": [
+        {
+          "video_id": "38539",
+          "signer_id": "wlasl_signer_47",
+          "split": "train",
+          "hand_coverage_pct": 26.7,
+          "frame_count": 105,
+          "issue": "Low hand detection (<50%): hand drops out of frame immediately after snap"
+        },
+        {
+          "video_id": "38544",
+          "signer_id": "wlasl_signer_41",
+          "split": "train",
+          "hand_coverage_pct": 30.0,
+          "frame_count": 83,
+          "issue": "Low hand detection (<50%): severe motion blur during snap"
+        },
+        {
+          "video_id": "66183",
+          "signer_id": "wlasl_signer_102",
+          "split": "train",
+          "hand_coverage_pct": 36.7,
+          "frame_count": 68,
+          "issue": "Low hand detection (<50%): dark background and contrast loss"
+        },
+        {
+          "video_id": "38524",
+          "signer_id": "wlasl_signer_56",
+          "split": "train",
+          "hand_coverage_pct": 30.0,
+          "frame_count": 80,
+          "issue": "Low hand detection (<50%): partial hand occlusion"
+        },
+        {
+          "video_id": "msasl_4_115",
+          "signer_id": "msasl_signer_38",
+          "split": "train",
+          "hand_coverage_pct": 30.0,
+          "frame_count": 104,
+          "issue": "Low hand detection (<50%): extreme camera angle tilt"
+        }
+      ],
+      "observed_confusion": {
+        "pair": "NO vs PAIN",
+        "mechanism": "2-finger snap signed slowly or diagonally mimics the converging dual index fingers of PAIN. Fast snaps occur in only 3-5 frames, vulnerable to temporal aliasing.",
+        "empirical_failures_round2": "1 false high-confidence PAIN (99.4%), 1 low-confidence rejection (57.7%)"
+      },
+      "target_usable_count": 60,
+      "recommended_to_collect": 17,
+      "candidate_sources_identified": {
+        "WLASL_uncollected": 6,
+        "MSASL_uncollected": 24,
+        "Public_Educational": 4
+      },
+      "ready_for_v5_training": false,
+      "readiness_blockers": [
+        "Must prune 5 degraded samples (<50% hand detection)",
+        "Train split size (28) insufficient for multi-tempo snap generalization",
+        "Requires dedicated temporal speed and finger-snap augmentation"
+      ]
+    },
+    "PLEASE": {
+      "current_usable_samples": 33,
+      "unique_signers": 25,
+      "signer_distribution": {
+        "top_signers": {
+          "msasl_signer_144": 3,
+          "msasl_signer_205": 2,
+          "msasl_signer_77": 2,
+          "msasl_signer_370": 2
+        }
+      },
+      "current_splits": {
+        "train": 21,
+        "val": 4,
+        "test": 8
+      },
+      "source_breakdown": {
+        "MS-ASL": 24,
+        "WLASL": 8,
+        "Public Educational ASL (Kidcasts ASL)": 1
+      },
+      "frame_count_stats": {
+        "mean": 97.8,
+        "min": 29,
+        "max": 249
+      },
+      "hand_detection_quality": {
+        "mean_coverage_pct": 81.9,
+        "min_coverage_pct": 43.3
+      },
+      "problematic_samples": [
+        {
+          "video_id": "msasl_47_132",
+          "signer_id": "msasl_signer_72",
+          "split": "train",
+          "hand_coverage_pct": 43.3,
+          "frame_count": 116,
+          "issue": "Low hand detection (<50%): hand moves too close to chest boundaries"
+        },
+        {
+          "video_id": "msasl_47_136",
+          "signer_id": "msasl_signer_215",
+          "split": "train",
+          "hand_coverage_pct": 46.7,
+          "frame_count": 145,
+          "issue": "Low hand detection (<50%): low-resolution webcam artifact"
+        }
+      ],
+      "observed_confusion": {
+        "pair": "PLEASE vs THANK_YOU",
+        "mechanism": "Both are flat open hand gestures starting on or near the torso/face. Wide chest circles or forward lean produce outward hand displacement that matches THANK_YOU's forward stroke.",
+        "empirical_failures_round2": "2 false high-confidence THANK_YOU (99.7% and 99.9%)"
+      },
+      "target_usable_count": 50,
+      "recommended_to_collect": 19,
+      "candidate_sources_identified": {
+        "WLASL_uncollected": 7,
+        "MSASL_uncollected": 23,
+        "Public_Educational": 5
+      },
+      "ready_for_v5_training": false,
+      "readiness_blockers": [
+        "Sample count (33) below minimum 40+ requirement",
+        "Train split size (21) severely underpowered for circular chest trajectory learning",
+        "Must enrich dataset with tight chest-contact circular samples"
+      ]
+    },
+    "SICK": {
+      "current_usable_samples": 39,
+      "unique_signers": 26,
+      "signer_distribution": {
+        "top_signers": {
+          "msasl_signer_274": 4,
+          "msasl_signer_124": 3,
+          "msasl_signer_286": 3,
+          "msasl_signer_77": 3
+        }
+      },
+      "current_splits": {
+        "train": 19,
+        "val": 9,
+        "test": 11
+      },
+      "source_breakdown": {
+        "MS-ASL": 29,
+        "WLASL": 10
+      },
+      "frame_count_stats": {
+        "mean": 96.8,
+        "min": 26,
+        "max": 375
+      },
+      "hand_detection_quality": {
+        "mean_coverage_pct": 80.5,
+        "min_coverage_pct": 46.7
+      },
+      "problematic_samples": [
+        {
+          "video_id": "51501",
+          "signer_id": "wlasl_signer_63",
+          "split": "test",
+          "hand_coverage_pct": 46.7,
+          "frame_count": 103,
+          "issue": "Low hand detection (<50%): forehead hand shadow occlusion"
+        }
+      ],
+      "observed_confusion": {
+        "pair": "SICK vs THANK_YOU",
+        "mechanism": "Forehead hand release drops downward past chin/mouth, mimicking chin-release trajectory of THANK_YOU. Stomach hand was frequently out of frame in MS-ASL crops.",
+        "empirical_failures_round2": "2 false high-confidence THANK_YOU (88.3% and 79.5%)"
+      },
+      "target_usable_count": 55,
+      "recommended_to_collect": 17,
+      "candidate_sources_identified": {
+        "WLASL_uncollected": 8,
+        "MSASL_uncollected": 14,
+        "Public_Educational": 4
+      },
+      "ready_for_v5_training": false,
+      "readiness_blockers": [
+        "Train split size (19) severely starved",
+        "Need samples with verified 2-handed presence (forehead AND stomach simultaneously tracked)",
+        "Must penalize downward descent mimicking THANK_YOU"
+      ]
+    },
+    "WHERE": {
+      "current_usable_samples": 32,
+      "unique_signers": 29,
+      "signer_distribution": {
+        "top_signers": {
+          "msasl_signer_36": 2,
+          "msasl_signer_77": 2,
+          "msasl_signer_32": 2,
+          "wlasl_signer_110": 1
+        }
+      },
+      "current_splits": {
+        "train": 24,
+        "val": 2,
+        "test": 6
+      },
+      "source_breakdown": {
+        "MS-ASL": 24,
+        "WLASL": 8
+      },
+      "frame_count_stats": {
+        "mean": 102.8,
+        "min": 36,
+        "max": 189
+      },
+      "hand_detection_quality": {
+        "mean_coverage_pct": 74.8,
+        "min_coverage_pct": 30.0
+      },
+      "problematic_samples": [
+        {
+          "video_id": "63081",
+          "signer_id": "wlasl_signer_42",
+          "split": "train",
+          "hand_coverage_pct": 30.0,
+          "frame_count": 113,
+          "issue": "Low hand detection (<50%): severe wrist blur during waggle"
+        },
+        {
+          "video_id": "63082",
+          "signer_id": "wlasl_signer_36",
+          "split": "train",
+          "hand_coverage_pct": 46.7,
+          "frame_count": 66,
+          "issue": "Low hand detection (<50%): camera cropped at lower hand"
+        },
+        {
+          "video_id": "63083",
+          "signer_id": "wlasl_signer_70",
+          "split": "test",
+          "hand_coverage_pct": 43.3,
+          "frame_count": 72,
+          "issue": "Low hand detection (<50%): finger landmark jitter"
+        },
+        {
+          "video_id": "msasl_30_211",
+          "signer_id": "msasl_signer_72",
+          "split": "train",
+          "hand_coverage_pct": 43.3,
+          "frame_count": 110,
+          "issue": "Low hand detection (<50%): low-contrast background"
+        }
+      ],
+      "observed_confusion": {
+        "pair": "WHERE vs BATHROOM",
+        "mechanism": "Both produce lateral wrist oscillations. When finger resolution is degraded, index waggle and 'T' fist shake appear identical in feature space.",
+        "empirical_failures_round2": "In Round 2, BATHROOM confused with WHERE (2 attempts, 86.5% and 88.7%); WHERE had 1 low-confidence rejection (57.0%)"
+      },
+      "target_usable_count": 50,
+      "recommended_to_collect": 22,
+      "candidate_sources_identified": {
+        "WLASL_uncollected": 7,
+        "MSASL_uncollected": 27,
+        "Public_Educational": 4
+      },
+      "ready_for_v5_training": false,
+      "readiness_blockers": [
+        "Sample count (32) well below 40+ requirement",
+        "Validation split starved at N=2",
+        "Lowest hand detection rate (74.8%) with 4 degraded samples",
+        "Excluding BATHROOM resolves collision, but WHERE needs finger-upright anchor data"
+      ]
+    }
+  },
+  "overall_recommendations": {
+    "total_samples_to_collect": 75,
+    "target_dataset_size_v5": 418,
+    "pruning_policy": "Drop the 12 identified low-coverage (<50% hand detection) samples before ingesting new candidates",
+    "feature_pipeline_preservation": "Strictly maintain 30 frames x 168 features",
+    "signer_overlap_constraint": "Strictly 0 cross-split signer overlap enforced globally"
+  }
+}

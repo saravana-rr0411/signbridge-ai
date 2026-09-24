@@ -1,0 +1,187 @@
+{
+  "timestamp": "2026-09-24 23:03:43",
+  "scope": "V5 10-Sign Dataset Pipeline",
+  "vocabulary_10": [
+    "HELLO",
+    "HELP",
+    "YES",
+    "NO",
+    "PLEASE",
+    "THANK_YOU",
+    "DOCTOR",
+    "PAIN",
+    "SICK",
+    "WHERE"
+  ],
+  "excluded_signs": [
+    "BATHROOM"
+  ],
+  "summary": {
+    "baseline_v4_samples": 401,
+    "bathroom_excluded_samples": 38,
+    "pruned_low_quality_samples": 12,
+    "retained_baseline_samples": 351,
+    "newly_collected_samples": 75,
+    "final_v5_usable_samples": 426,
+    "final_unique_signers": 105,
+    "split_distribution": {
+      "train": 272,
+      "test": 85,
+      "val": 69
+    },
+    "signer_distribution": {
+      "train_signers": 79,
+      "val_signers": 17,
+      "test_signers": 9,
+      "cross_split_overlap": 0
+    }
+  },
+  "per_class_details": {
+    "HELLO": {
+      "old_usable_count": 26,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 26,
+      "unique_signers": 25,
+      "splits": {
+        "train": 17,
+        "val": 5,
+        "test": 4
+      },
+      "ready_for_v5": true
+    },
+    "HELP": {
+      "old_usable_count": 44,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 44,
+      "unique_signers": 28,
+      "splits": {
+        "train": 29,
+        "test": 8,
+        "val": 7
+      },
+      "ready_for_v5": true
+    },
+    "YES": {
+      "old_usable_count": 48,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 48,
+      "unique_signers": 35,
+      "splits": {
+        "train": 31,
+        "val": 9,
+        "test": 8
+      },
+      "ready_for_v5": true
+    },
+    "NO": {
+      "old_usable_count": 48,
+      "pruned_count": 5,
+      "newly_accepted": 17,
+      "final_usable_count": 60,
+      "unique_signers": 33,
+      "splits": {
+        "train": 36,
+        "test": 13,
+        "val": 11
+      },
+      "ready_for_v5": true
+    },
+    "PLEASE": {
+      "old_usable_count": 33,
+      "pruned_count": 2,
+      "newly_accepted": 19,
+      "final_usable_count": 50,
+      "unique_signers": 26,
+      "splits": {
+        "train": 30,
+        "test": 13,
+        "val": 7
+      },
+      "ready_for_v5": true
+    },
+    "THANK_YOU": {
+      "old_usable_count": 21,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 21,
+      "unique_signers": 21,
+      "splits": {
+        "train": 18,
+        "val": 2,
+        "test": 1
+      },
+      "ready_for_v5": true
+    },
+    "DOCTOR": {
+      "old_usable_count": 40,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 40,
+      "unique_signers": 20,
+      "splits": {
+        "train": 28,
+        "test": 10,
+        "val": 2
+      },
+      "ready_for_v5": true
+    },
+    "PAIN": {
+      "old_usable_count": 32,
+      "pruned_count": 0,
+      "newly_accepted": 0,
+      "final_usable_count": 32,
+      "unique_signers": 15,
+      "splits": {
+        "train": 17,
+        "val": 9,
+        "test": 6
+      },
+      "ready_for_v5": true
+    },
+    "SICK": {
+      "old_usable_count": 39,
+      "pruned_count": 1,
+      "newly_accepted": 17,
+      "final_usable_count": 55,
+      "unique_signers": 25,
+      "splits": {
+        "train": 32,
+        "test": 14,
+        "val": 9
+      },
+      "ready_for_v5": true
+    },
+    "WHERE": {
+      "old_usable_count": 32,
+      "pruned_count": 4,
+      "newly_accepted": 22,
+      "final_usable_count": 50,
+      "unique_signers": 28,
+      "splits": {
+        "train": 34,
+        "test": 8,
+        "val": 8
+      },
+      "ready_for_v5": true
+    }
+  },
+  "readiness_status": {
+    "all_weak_classes_ready": true,
+    "ready_classes": [
+      "HELLO",
+      "HELP",
+      "YES",
+      "NO",
+      "PLEASE",
+      "THANK_YOU",
+      "DOCTOR",
+      "PAIN",
+      "SICK",
+      "WHERE"
+    ],
+    "not_ready_classes": []
+  }
+}
