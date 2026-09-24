@@ -123,6 +123,14 @@ class CameraService {
 
   // 2. STOP CAMERA & CLEANUP TRACKS (CALLED ON UNMOUNT)
   stopCamera(reason = 'cameraService.stopCamera') {
+    console.trace('[CAMERA STOP TRACE]', reason, {
+      currentStatus: this.status,
+      streamActive: Boolean(this.stream && this.stream.active),
+      streamTracksCount: this.stream ? this.stream.getTracks().length : 0,
+      currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+      timestamp: new Date().toISOString()
+    });
+
     // Unpublish from WebRTC service with exact caller and reason
     webrtcService.unpublishStream('cameraService.stopCamera', reason);
 

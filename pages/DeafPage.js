@@ -67,6 +67,12 @@ export function renderDeafPage() {
 }
 
 export function initDeafPage() {
+  console.log('[CAMERA STOP TRACE] DeafPage component mount', {
+    currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+    currentCameraState: cameraService.status,
+    timestamp: new Date().toISOString()
+  });
+
   // Connect to cross-device WebSocket relay as 'deaf' peer in room 'desk_04'
   communicationService.connect('desk_04', 'deaf');
 
@@ -151,7 +157,13 @@ export function initDeafPage() {
   }
 
   // STOP CAMERA: Stop all tracks, clear srcObject, stop MediaPipe processing, reset feature buffer, remove overlays
-  function stopLiveCamera() {
+  function stopLiveCamera(triggerSource = 'unknown') {
+    console.trace('[CAMERA STOP TRACE] stopLiveCamera invoked', {
+      triggerSource,
+      currentCameraState: cameraService.status,
+      currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+      timestamp: new Date().toISOString()
+    });
     cameraService.stopCamera('user_clicked_stop_camera');
     signRecognitionService.stopRecognition();
     handTrackingDebugService.detach();
@@ -165,14 +177,38 @@ export function initDeafPage() {
 
   // Bind testing camera controls
   if (btnStartCamera) {
-    btnStartCamera.addEventListener('click', () => {
+    btnStartCamera.addEventListener('click', (event) => {
+      console.log('[CAMERA STOP TRACE] Start Camera button clicked', {
+        eventType: event?.type,
+        eventTarget: event?.target ? `${event.target.tagName}#${event.target.id || ''}.${event.target.className || ''}` : null,
+        isTrusted: event?.isTrusted,
+        pointerType: event?.pointerType,
+        activeElement: document.activeElement ? `${document.activeElement.tagName}#${document.activeElement.id || ''}` : null,
+        currentCameraState: cameraService.status,
+        currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+        timestamp: new Date().toISOString()
+      });
       startLiveCamera();
     });
   }
 
   if (btnStopCamera) {
-    btnStopCamera.addEventListener('click', () => {
-      stopLiveCamera();
+    btnStopCamera.addEventListener('click', (event) => {
+      console.trace('[CAMERA STOP TRACE]', 'user_clicked_stop_camera', {
+        handlerFired: 'btnStopCamera.click',
+        eventType: event?.type,
+        eventTarget: event?.target ? `${event.target.tagName}#${event.target.id || ''}.${event.target.className || ''}` : null,
+        isTrusted: event?.isTrusted,
+        clientX: event?.clientX,
+        clientY: event?.clientY,
+        pointerType: event?.pointerType,
+        detail: event?.detail,
+        activeElement: document.activeElement ? `${document.activeElement.tagName}#${document.activeElement.id || ''}` : null,
+        currentCameraState: cameraService.status,
+        currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+        timestamp: new Date().toISOString()
+      });
+      stopLiveCamera('btnStopCamera_click');
     });
   }
 
@@ -499,6 +535,12 @@ export function initDeafPage() {
 
   // TEARDOWN FUNCTION: Called when navigating away
   return () => {
+    console.log('[CAMERA STOP TRACE] DeafPage component unmount/cleanup triggered', {
+      currentRoute: typeof window !== 'undefined' ? window.location.hash : 'unknown',
+      currentCameraState: cameraService.status,
+      timestamp: new Date().toISOString()
+    });
+
     // Disconnect cleanly from WebSocket relay
     communicationService.disconnect();
 

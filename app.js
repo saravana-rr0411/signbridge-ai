@@ -50,6 +50,10 @@ class AppRouter {
     // Clean up previous page listeners/timers/camera tracks
     if (this.currentTeardown && typeof this.currentTeardown === 'function') {
       try {
+        console.log('[CAMERA STOP TRACE] Router invoking teardown for previous page', {
+          targetRoute: normalizedHash,
+          timestamp: new Date().toISOString()
+        });
         this.currentTeardown();
       } catch (err) {
         console.error('Teardown error:', err);
