@@ -9,7 +9,8 @@ export function renderSignTranscript(
   statusText = 'Recognition: Ready',
   statusId = 'recognition-status-text',
   rawSign = '—',
-  contextName = 'Hospital First-Visit'
+  contextName = 'Hospital First-Visit',
+  modelBadge = 'V6 • 10-SIGN'
 ) {
   const dotId = statusId ? `${statusId}-dot` : 'recognition-status-dot';
   const rawSignId = `${id}-raw-sign`;
@@ -29,8 +30,8 @@ export function renderSignTranscript(
             <span class="material-symbols-outlined text-[13px] text-rose-600">local_hospital</span>
             <span>${contextName}</span>
           </span>
-          <span class="text-[10px] font-mono font-bold text-slate-500 bg-surface-container px-2 py-0.5 rounded uppercase tracking-wider">
-            V3 / 6-Sign
+          <span class="text-[10px] font-mono font-bold text-slate-600 bg-surface-container px-2 py-0.5 rounded uppercase tracking-wider" id="${id}-model-badge">
+            ${modelBadge}
           </span>
         </div>
       </div>

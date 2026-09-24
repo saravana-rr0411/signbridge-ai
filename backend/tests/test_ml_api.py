@@ -165,3 +165,60 @@ def test_malformed_input_handling(client):
 
     res_wrong_type = client.post("/predict/sequence", json={"frames": "not a list"})
     assert res_wrong_type.status_code == 422
+
+
+def test_labels_v3_six_sign_endpoint(client):
+    """Test GET /labels/v3-six-sign returns exactly 6 classes."""
+    res = client.get("/labels/v3-six-sign")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["vocabulary_size"] == 6
+    assert len(data["classes"]) == 6
+    for cls in ["help", "yes", "no", "thank_you", "please", "hello"]:
+        assert cls in data["classes"]
+
+
+def test_predict_sequence_v3_six_sign(client):
+    """Test POST /predict/sequence/v3-six-sign with 30x168 features and rejection of 30x150."""
+    valid_seq = [[0.05] * 168 for _ in range(30)]
+    res = client.post("/predict/sequence/v3-six-sign", json={"frames": valid_seq})
+    assert res.status_code == 200
+    data = res.json()
+    assert "confidence" in data
+    assert "top_k" in data
+    assert len(data["top_k"]) == 6
+
+    # Verify rejection of 30x150
+    invalid_seq = [[0.05] * 150 for _ in range(30)]
+    res_bad = client.post("/predict/sequence/v3-six-sign", json={"frames": invalid_seq})
+    assert res_bad.status_code == 422
+
+
+def test_labels_v6_10_sign_endpoint(client):
+    """Test GET /labels/v6-10-sign returns exactly 10 classes."""
+    res = client.get("/labels/v6-10-sign")
+    assert res.status_code == 200
+    data = res.json()
+    assert data["vocabulary_size"] == 10
+    assert len(data["classes"]) == 10
+    expected_v6 = ["hello", "help", "yes", "no", "please", "thank_you", "doctor", "pain", "sick", "where"]
+    for cls in expected_v6:
+        assert cls in data["classes"]
+
+
+def test_predict_sequence_v6_10_sign(client):
+    """Test POST /predict/sequence/v6-10-sign with 30x168 features and rejection of 30x150."""
+    valid_seq = [[0.05] * 168 for _ in range(30)]
+    res = client.post("/predict/sequence/v6-10-sign", json={"frames": valid_seq})
+    assert res.status_code == 200
+    data = res.json()
+    assert "confidence" in data
+    assert "top_k" in data
+    assert len(data["top_k"]) == 10
+    assert data["tensor_shapes"]["model_output"] == [1, 10]
+
+    # Verify rejection of 30x150
+    invalid_seq = [[0.05] * 150 for _ in range(30)]
+    res_bad = client.post("/predict/sequence/v6-10-sign", json={"frames": invalid_seq})
+    assert res_bad.status_code == 422
+

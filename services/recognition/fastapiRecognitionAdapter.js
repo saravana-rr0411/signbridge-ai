@@ -8,11 +8,12 @@ import { landmarkPipelineService } from '../landmarkPipelineService.js';
 
 export const DISPLAY_TEXT_MAP = {
   "help": "I need help",
-  "doctor": "I need a doctor",
+  "doctor": "I need the doctor",
   "hospital": "Where is the hospital?",
-  "sick": "I am sick / Need medical care",
+  "sick": "I am sick",
   "appointment": "I have an appointment",
-  "where": "Where is the counter?",
+  "where": "Where?",
+  "pain": "I have pain",
   "bathroom": "Where is the bathroom?",
   "yes": "Yes",
   "no": "No",
@@ -30,10 +31,11 @@ export const DISPLAY_TEXT_MAP = {
 
 /**
  * Recognition Model Configuration:
- * - 'v3_six_sign': Uses the focused 6-sign Bi-GRU model (30x168 features) via /predict/sequence/v3-six-sign
- * - 'v2': Production fallback using the 18-class Bi-GRU model (30x150 features) via /predict/sequence
+ * - 'v6_10_sign': Uses the experimental 10-sign Bi-GRU model (30x168 features) via /predict/sequence/v6-10-sign (Primary)
+ * - 'v3_six_sign': Uses the focused 6-sign Bi-GRU model (30x168 features) via /predict/sequence/v3-six-sign (Fallback)
+ * - 'v2': Production fallback using the 18-class Bi-GRU model (30x150 features) via /predict/sequence (Fallback)
  */
-export const RECOGNITION_MODEL = 'v3_six_sign';
+export const RECOGNITION_MODEL = 'v6_10_sign';
 
 /**
  * Updates DOM indicators for Continuous Recognition Live Diagnostics (Rule 10)
@@ -83,17 +85,24 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
     super('FastAPIRecognitionAdapter', 'fastapi');
 
     // Model mode configuration: explicitly provided mode, or inferred from endpoint, or default to RECOGNITION_MODEL
-    if (endpoint && endpoint.includes('/predict/sequence') && !endpoint.includes('v3-six-sign')) {
-      this.modelMode = modelMode || 'v2';
+    if (endpoint && endpoint.includes('v6-10-sign')) {
+      this.modelMode = 'v6_10_sign';
       this.endpoint = endpoint;
     } else if (endpoint && endpoint.includes('v3-six-sign')) {
       this.modelMode = 'v3_six_sign';
       this.endpoint = endpoint;
+    } else if (endpoint && endpoint.includes('/predict/sequence')) {
+      this.modelMode = modelMode || 'v2';
+      this.endpoint = endpoint;
     } else {
       this.modelMode = modelMode || RECOGNITION_MODEL;
-      this.endpoint = (this.modelMode === 'v3_six_sign')
-        ? API_ENDPOINTS.PREDICT_SEQUENCE_V3_SIX_SIGN
-        : API_ENDPOINTS.PREDICT_SEQUENCE;
+      if (this.modelMode === 'v6_10_sign') {
+        this.endpoint = API_ENDPOINTS.PREDICT_SEQUENCE_V6_10_SIGN;
+      } else if (this.modelMode === 'v3_six_sign') {
+        this.endpoint = API_ENDPOINTS.PREDICT_SEQUENCE_V3_SIX_SIGN;
+      } else {
+        this.endpoint = API_ENDPOINTS.PREDICT_SEQUENCE;
+      }
     }
 
     this.healthEndpoint = API_ENDPOINTS.HEALTH;
@@ -164,8 +173,11 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
   handlePipelineFrame(sequence, diagnostics) {
     if (!this.isRunning || !this.isBackendOnline) return;
 
+    const isV6 = (this.modelMode === 'v6_10_sign');
     const isV3 = (this.modelMode === 'v3_six_sign');
-    const shapeLabel = isV3 ? '30 × 168' : '30 × 150';
+    const is168 = isV6 || isV3;
+    const shapeLabel = is168 ? '30 × 168' : '30 × 150';
+    const modelTag = isV6 ? 'V6 10-Sign' : (isV3 ? 'V3 6-Sign' : 'V2');
 
     // Check if temporal window is still collecting
     if (!diagnostics.isReady || !sequence || sequence.length !== 30) {
@@ -175,7 +187,7 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
         confidence: '—',
         rawFrames: diagnostics.rawFramesCount,
         sampledFrames: '0/30',
-        sequenceShape: isV3 ? '0 × 168' : '0 × 150',
+        sequenceShape: is168 ? '0 × 168' : '0 × 150',
         latency: '—'
       });
 
@@ -197,7 +209,7 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
 
     updateContinuousDiagnosticsUI({
       status: 'Inference',
-      prediction: `Evaluating (${isV3 ? 'V3-6Sign' : 'V2'})...`,
+      prediction: `Evaluating (${modelTag})...`,
       confidence: '—',
       rawFrames: diagnostics.rawFramesCount,
       sampledFrames: '30/30',
@@ -206,7 +218,7 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
     });
 
     if (this.onStatus) {
-      this.onStatus(`Processing sequence with Bi-GRU (${isV3 ? 'V3 6-Sign' : 'V2'})...`, 'RECOGNIZING');
+      this.onStatus(`Processing sequence with Bi-GRU (${modelTag})...`, 'RECOGNIZING');
     }
 
     this.dispatchInferenceRequest(sequence, diagnostics);
@@ -214,8 +226,10 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
 
   async dispatchInferenceRequest(sequence30, diagnostics) {
     const tStart = performance.now();
+    const isV6 = (this.modelMode === 'v6_10_sign');
     const isV3 = (this.modelMode === 'v3_six_sign');
-    const shapeLabel = isV3 ? '30 × 168' : '30 × 150';
+    const is168 = isV6 || isV3;
+    const shapeLabel = is168 ? '30 × 168' : '30 × 150';
 
     try {
       const resp = await fetch(this.endpoint, {
@@ -224,8 +238,8 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
         body: JSON.stringify({
           frames: Array.from(sequence30).map(f => {
             const arr = Array.from(f);
-            // In V2 mode, slice 168 down to 150 features. In V3 mode, preserve full 168 features.
-            return (!isV3 && arr.length > 150) ? arr.slice(0, 150) : arr;
+            // In V2 mode, slice 168 down to 150 features. In V6 and V3 mode, preserve full 168 features.
+            return (!is168 && arr.length > 150) ? arr.slice(0, 150) : arr;
           }),
           confidence_threshold: this.confidenceThreshold
         })
@@ -261,8 +275,10 @@ export class FastAPIRecognitionAdapter extends BaseRecognitionAdapter {
   handleInferenceResponse(result, roundTripMs, diagnostics) {
     if (!result) return;
 
+    const isV6 = (this.modelMode === 'v6_10_sign');
     const isV3 = (this.modelMode === 'v3_six_sign');
-    const shapeLabel = isV3 ? '30 × 168' : '30 × 150';
+    const is168 = isV6 || isV3;
+    const shapeLabel = is168 ? '30 × 168' : '30 × 150';
 
     const { label, confidence, accepted, top_k, inference_latency_ms } = result;
 

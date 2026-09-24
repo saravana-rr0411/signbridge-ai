@@ -21,8 +21,10 @@ from backend.app.ml.schemas import (
     HealthResponse,
     LabelsResponse,
     LabelsResponseV3,
+    LabelsResponseV6,
     SequencePredictionRequest,
     SequencePredictionRequestV3,
+    SequencePredictionRequestV6,
     SequencePredictionResponse,
     StaticPredictionRequest,
     StaticPredictionResponse,
@@ -117,6 +119,21 @@ async def get_labels_v3_six_sign():
     )
 
 
+@app.get("/labels/v6-10-sign", response_model=LabelsResponseV6)
+async def get_labels_v6_10_sign():
+    """
+    Returns the 10-sign vocabulary for the experimental model V6.
+    """
+    if not model_manager.is_loaded:
+        model_manager.load_models()
+
+    return LabelsResponseV6(
+        vocabulary_size=len(model_manager.vocabulary_v6_10_sign),
+        classes=model_manager.vocabulary_v6_10_sign,
+        model_version="v6_10_sign"
+    )
+
+
 @app.post("/predict/sequence", response_model=SequencePredictionResponse)
 async def predict_sequence(req: SequencePredictionRequest):
     """
@@ -168,6 +185,33 @@ async def predict_sequence_v3_six_sign(req: SequencePredictionRequestV3):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"V3 inference error: {str(exc)}"
+        )
+
+
+@app.post("/predict/sequence/v6-10-sign", response_model=SequencePredictionResponse)
+async def predict_sequence_v6_10_sign(req: SequencePredictionRequestV6):
+    """
+    Consumes a 30-frame x 168-feature landmark sequence and returns prediction from the experimental 10-sign V6 model.
+    Applies configurable confidence thresholding (default: 0.70).
+    """
+    if not model_manager.is_loaded:
+        model_manager.load_models()
+
+    try:
+        result = model_manager.predict_sequence_v6_10_sign(
+            raw_frames=req.frames,
+            threshold=req.confidence_threshold
+        )
+        return SequencePredictionResponse(**result)
+    except ValueError as val_err:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail=f"Invalid landmark tensor structure for V6: {str(val_err)}"
+        )
+    except Exception as exc:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"V6 inference error: {str(exc)}"
         )
 
 

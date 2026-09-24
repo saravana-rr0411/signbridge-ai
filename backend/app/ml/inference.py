@@ -152,6 +152,11 @@ class ModelManager:
         self.dynamic_label_map_v3_six_sign: Dict[int, str] = {}
         self.vocabulary_v3_six_sign: List[str] = ["help", "yes", "no", "thank_you", "please", "hello"]
 
+        # Isolated V6 10-Sign Model components
+        self.dynamic_model_v6_10_sign: Optional[DynamicSignBiGRU] = None
+        self.dynamic_label_map_v6_10_sign: Dict[int, str] = {}
+        self.vocabulary_v6_10_sign: List[str] = ["hello", "help", "yes", "no", "please", "thank_you", "doctor", "pain", "sick", "where"]
+
         self.confidence_threshold = DEFAULT_CONFIDENCE_THRESHOLD
         self.stabilizer = PredictionStabilizer()
         self.is_loaded = False
@@ -257,6 +262,29 @@ class ModelManager:
             self.dynamic_model_v3_six_sign.eval()
             print(f"[ModelManager] V3 Six-Sign model ready: {len(self.vocabulary_v3_six_sign)} classes ({', '.join(self.vocabulary_v3_six_sign)}).")
 
+        # 5. Load Isolated V6 10-Sign Bi-GRU Checkpoint (Experimental Model, 168 dims, 10 classes)
+        v6_ckpt_path = MODELS_DIR / "dynamic_bigru_v6_10_sign.pt"
+        v6_map_path = MODELS_DIR / "dynamic_label_mapping_v6_10_sign.json"
+        if v6_ckpt_path.exists() and v6_map_path.exists():
+            print(f"[ModelManager] Loading isolated V6 10-sign model from: {v6_ckpt_path.name}")
+            v6_ckpt = torch.load(v6_ckpt_path, map_location=self.device, weights_only=False)
+            with open(v6_map_path, "r", encoding="utf-8") as f:
+                raw_v6_map = json.load(f)
+            self.dynamic_label_map_v6_10_sign = {int(k): str(v) for k, v in raw_v6_map.items()}
+            self.vocabulary_v6_10_sign = [self.dynamic_label_map_v6_10_sign[i] for i in range(len(self.dynamic_label_map_v6_10_sign))]
+
+            self.dynamic_model_v6_10_sign = DynamicSignBiGRU(
+                input_dim=168,
+                hidden_dim=64,
+                num_layers=2,
+                num_classes=len(self.dynamic_label_map_v6_10_sign),
+                dropout=0.0
+            )
+            self.dynamic_model_v6_10_sign.load_state_dict(v6_ckpt["model_state_dict"])
+            self.dynamic_model_v6_10_sign.to(self.device)
+            self.dynamic_model_v6_10_sign.eval()
+            print(f"[ModelManager] V6 10-Sign model ready: {len(self.vocabulary_v6_10_sign)} classes ({', '.join(self.vocabulary_v6_10_sign)}).")
+
         self.is_loaded = True
         print(f"[ModelManager] Successfully initialized: {len(self.dynamic_label_map)} dynamic classes, {len(self.static_label_map)} static classes. Active vocabulary: {len(self.vocabulary)} items.")
 
@@ -355,6 +383,64 @@ class ModelManager:
             })
 
         predicted_label = self.dynamic_label_map_v3_six_sign.get(top_cid, f"class_{top_cid}")
+        accepted = bool(top_conf >= eff_threshold)
+        prob_sum = float(np.sum(probs_np))
+
+        return {
+            "label": predicted_label if accepted else None,
+            "class_id": top_cid if accepted else None,
+            "raw_prediction": predicted_label,
+            "raw_class_id": top_cid,
+            "confidence": round(top_conf, 4),
+            "accepted": accepted,
+            "top_k": top_k,
+            "inference_latency_ms": round(latency_ms, 2),
+            "tensor_shapes": {
+                "frontend": [30, 168],
+                "backend_received": [int(arr.shape[1]), int(arr.shape[2])],
+                "pytorch_tensor": list(x_t.shape),
+                "model_output": list(logits.shape)
+            },
+            "probability_sum": round(prob_sum, 4)
+        }
+
+    def predict_sequence_v6_10_sign(self, raw_frames: List[Any], threshold: Optional[float] = None) -> Dict[str, Any]:
+        """
+        Runs 30-frame sequence inference for the experimental 10-sign V6 model (30x168).
+        Returns: label, class_id, confidence, accepted, top_k, latency_ms.
+        """
+        if not self.is_loaded or self.dynamic_model_v6_10_sign is None:
+            raise RuntimeError("V6 10-sign Bi-GRU model is not loaded.")
+
+        eff_threshold = threshold if threshold is not None else self.confidence_threshold
+
+        t0 = time.perf_counter()
+        arr, mask = validate_and_format_sequence_v3(raw_frames)
+
+        x_t = torch.from_numpy(arr).to(self.device)
+        m_t = torch.from_numpy(mask).to(self.device)
+
+        with torch.inference_mode():
+            logits = self.dynamic_model_v6_10_sign(x_t, m_t)
+            probs = torch.softmax(logits, dim=1).squeeze(0)
+
+        probs_np = probs.cpu().numpy()
+        latency_ms = (time.perf_counter() - t0) * 1000.0
+
+        top_indices = np.argsort(probs_np)[::-1]
+        top_cid = int(top_indices[0])
+        top_conf = float(probs_np[top_cid])
+
+        top_k = []
+        for idx in top_indices:
+            cid = int(idx)
+            lbl = self.dynamic_label_map_v6_10_sign.get(cid, f"class_{cid}")
+            top_k.append({
+                "label": lbl,
+                "confidence": round(float(probs_np[cid]), 4)
+            })
+
+        predicted_label = self.dynamic_label_map_v6_10_sign.get(top_cid, f"class_{top_cid}")
         accepted = bool(top_conf >= eff_threshold)
         prob_sum = float(np.sum(probs_np))
 

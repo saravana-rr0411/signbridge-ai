@@ -6,6 +6,7 @@
 import {
   HOSPITAL_PHRASES,
   V3_ML_ALLOWED_SIGNS,
+  V6_ML_ALLOWED_SIGNS,
   getPhraseById,
   resolveHospitalSentence
 } from './hospitalPhrases.js';
@@ -221,7 +222,8 @@ class HospitalConversationService {
       confidence: confidence,
       timestamp: now,
       source: 'ml_recognition',
-      isAllowedV3Sign: isAllowedV3
+      isAllowedV3Sign: isAllowedV3,
+      isAllowedV6Sign: V6_ML_ALLOWED_SIGNS.includes(normalizedSign)
     };
 
     this.conversationHistory.push(historyRecord);

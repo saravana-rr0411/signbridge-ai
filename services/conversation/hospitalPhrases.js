@@ -16,6 +16,24 @@ export const V3_ML_ALLOWED_SIGNS = Object.freeze([
 ]);
 
 /**
+ * Allowed ML vocabulary for the experimental 10-sign V6 model.
+ * 6 production signs + 4 hospital signs (DOCTOR, PAIN, SICK, WHERE).
+ */
+export const V6_ML_ALLOWED_SIGNS = Object.freeze([
+  'HELP',
+  'YES',
+  'NO',
+  'PLEASE',
+  'HELLO',
+  'THANK_YOU',
+  'DOCTOR',
+  'PAIN',
+  'SICK',
+  'WHERE'
+]);
+
+
+/**
  * 15 Predefined Hospital First-Visit phrases.
  * Each phrase defines:
  * - unique ID (hosp_01 to hosp_15)
@@ -293,6 +311,10 @@ export function getPhrasesByCategory() {
 export const HOSPITAL_SEQUENCE_MAPPINGS = Object.freeze([
   // 3-Sign Sequences (Checked first)
   {
+    sequence: ['DOCTOR', 'PLEASE', 'HELP'],
+    sentence: 'Doctor, please help me.'
+  },
+  {
     sequence: ['HELLO', 'HELP', 'PLEASE'],
     sentence: 'Hello, I need help, please.'
   },
@@ -302,6 +324,22 @@ export const HOSPITAL_SEQUENCE_MAPPINGS = Object.freeze([
   },
 
   // 2-Sign Sequences
+  {
+    sequence: ['HELLO', 'DOCTOR'],
+    sentence: 'Hello, I need the doctor.'
+  },
+  {
+    sequence: ['SICK', 'DOCTOR'],
+    sentence: 'I am sick. I need the doctor.'
+  },
+  {
+    sequence: ['HELP', 'PAIN'],
+    sentence: 'I need help. I have pain.'
+  },
+  {
+    sequence: ['WHERE', 'DOCTOR'],
+    sentence: 'Where is the doctor?'
+  },
   {
     sequence: ['HELLO', 'HELP'],
     sentence: 'Hello, I need help.'
@@ -316,6 +354,22 @@ export const HOSPITAL_SEQUENCE_MAPPINGS = Object.freeze([
   },
 
   // 1-Sign Sequences (Single-sign exact mappings)
+  {
+    sequence: ['DOCTOR'],
+    sentence: 'I need the doctor.'
+  },
+  {
+    sequence: ['PAIN'],
+    sentence: 'I have pain.'
+  },
+  {
+    sequence: ['SICK'],
+    sentence: 'I am sick.'
+  },
+  {
+    sequence: ['WHERE'],
+    sentence: 'Where?'
+  },
   {
     sequence: ['HELP'],
     sentence: 'I need help.'
