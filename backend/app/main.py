@@ -5,10 +5,11 @@ Provides real-time CPU inference for the 18-class civic sign vocabulary.
 
 import os
 import sys
+import time
 from pathlib import Path
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, HTTPException, status
+from fastapi import FastAPI, HTTPException, status, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 
@@ -240,3 +241,131 @@ async def predict_static(req: StaticPredictionRequest):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=f"Static inference error: {str(exc)}"
         )
+
+
+# ============================================================================
+# REAL-TIME WEBSOCKET RELAY: Cross-Device Signaling & Communication Bus
+# ============================================================================
+
+class ConnectionManager:
+    """
+    Manages active WebSockets segregated by room_id and client_role ('deaf' or 'admin').
+    Ensures exactly one active connection per role per room, gracefully replacing duplicates
+    and cleanly relaying messages to the opposite peer.
+    """
+    def __init__(self):
+        self.rooms: dict[str, dict[str, WebSocket]] = {}
+
+    async def connect(self, room_id: str, client_role: str, websocket: WebSocket):
+        await websocket.accept()
+        role = client_role.lower().strip()
+        room = self.rooms.setdefault(room_id, {})
+
+        # Handle duplicate same-role connection gracefully without breaking the room
+        existing_ws = room.get(role)
+        if existing_ws is not None and existing_ws != websocket:
+            try:
+                await existing_ws.close(code=1000, reason="Replaced by new connection")
+            except Exception:
+                pass
+
+        room[role] = websocket
+
+        # Notify the opposite peer that this role has connected
+        opposite_role = "admin" if role == "deaf" else "deaf"
+        opposite_ws = room.get(opposite_role)
+        if opposite_ws is not None:
+            try:
+                await opposite_ws.send_json({
+                    "roomId": room_id,
+                    "senderRole": "system",
+                    "targetRole": opposite_role,
+                    "type": "PEER_CONNECTED",
+                    "payload": {"connectedRole": role},
+                    "timestamp": int(time.time() * 1000)
+                })
+            except Exception:
+                pass
+
+    def disconnect(self, room_id: str, client_role: str, websocket: WebSocket):
+        role = client_role.lower().strip()
+        if room_id in self.rooms:
+            if self.rooms[room_id].get(role) == websocket:
+                del self.rooms[room_id][role]
+            if not self.rooms[room_id]:
+                del self.rooms[room_id]
+
+    async def notify_disconnect(self, room_id: str, client_role: str):
+        role = client_role.lower().strip()
+        opposite_role = "admin" if role == "deaf" else "deaf"
+        if room_id in self.rooms:
+            opposite_ws = self.rooms[room_id].get(opposite_role)
+            if opposite_ws is not None:
+                try:
+                    await opposite_ws.send_json({
+                        "roomId": room_id,
+                        "senderRole": "system",
+                        "targetRole": opposite_role,
+                        "type": "PEER_DISCONNECTED",
+                        "payload": {"disconnectedRole": role},
+                        "timestamp": int(time.time() * 1000)
+                    })
+                except Exception:
+                    pass
+
+    async def relay_message(self, room_id: str, sender_role: str, data: dict):
+        role = sender_role.lower().strip()
+        opposite_role = "admin" if role == "deaf" else "deaf"
+        room = self.rooms.get(room_id)
+        if not room:
+            return False
+
+        target_ws = room.get(opposite_role)
+        if target_ws is not None:
+            try:
+                await target_ws.send_json(data)
+                return True
+            except Exception as e:
+                print(f"[SignBridge WS] Error relaying message to {opposite_role}: {e}", file=sys.stderr)
+                return False
+        return False
+
+
+manager = ConnectionManager()
+
+
+@app.websocket("/ws/relay/{room_id}/{client_role}")
+async def websocket_relay_endpoint(websocket: WebSocket, room_id: str, client_role: str):
+    """
+    Bi-directional cross-device WebSocket relay for SignBridge AI.
+    Relays contextual sign messages, Admin responses, and WebRTC SDP/ICE signaling
+    between exactly one Deaf client and one Admin client in the room.
+    """
+    role = client_role.lower().strip()
+    if role not in ("deaf", "admin"):
+        await websocket.close(code=4003, reason="Invalid role. Must be 'deaf' or 'admin'.")
+        return
+
+    await manager.connect(room_id, role, websocket)
+    try:
+        while True:
+            data = await websocket.receive_json()
+            if not isinstance(data, dict):
+                continue
+
+            envelope = {
+                "roomId": room_id,
+                "senderRole": role,
+                "targetRole": "admin" if role == "deaf" else "deaf",
+                "type": data.get("type", "UNKNOWN"),
+                "payload": data.get("payload", {}),
+                "timestamp": data.get("timestamp") or int(time.time() * 1000)
+            }
+            await manager.relay_message(room_id, role, envelope)
+    except WebSocketDisconnect:
+        manager.disconnect(room_id, role, websocket)
+        await manager.notify_disconnect(room_id, role)
+    except Exception:
+        manager.disconnect(room_id, role, websocket)
+        await manager.notify_disconnect(room_id, role)
+

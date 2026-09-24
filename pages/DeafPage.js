@@ -67,6 +67,9 @@ export function renderDeafPage() {
 }
 
 export function initDeafPage() {
+  // Connect to cross-device WebSocket relay as 'deaf' peer in room 'desk_04'
+  communicationService.connect('desk_04', 'deaf');
+
   const videoEl = document.getElementById('deaf-camera-video');
   const permissionBanner = document.getElementById('camera-permission-banner');
   const cameraErrorMessage = document.getElementById('camera-error-message');
@@ -407,6 +410,28 @@ export function initDeafPage() {
   const unsubSignResponse = communicationService.on('ADMIN_SIGN_RESPONSE', (payload) => {
     if (payload && payload.text) {
       applyGreenCameraState(false);
+
+      // Sync Admin's response into Deaf conversation store if not already present
+      const msgId = payload.messageId || payload.id || payload.msgId;
+      const conv = conversationStore.getConversation();
+      const exists = conv.some(
+        (m) =>
+          (msgId && m.id === msgId) ||
+          (m.sender === 'admin' && m.text === payload.text && Math.abs((m.timestamp || 0) - (payload.timestamp || Date.now())) < 4000)
+      );
+      if (!exists) {
+        conversationStore.addMessage({
+          id: msgId,
+          sender: 'admin',
+          senderName: payload.senderName || 'Admin (Officer Vance)',
+          text: payload.text,
+          type: 'text',
+          isActiveReply: true,
+          mode: payload.mode || 'FINGERSPELLING',
+          timestamp: payload.timestamp
+        });
+      }
+
       signAnimationService.playAnimationForMessage(
         payload.text,
         payload.mode || 'FINGERSPELLING',
@@ -419,6 +444,27 @@ export function initDeafPage() {
   const unsubComm = communicationService.on('ADMIN_MESSAGE_SENT', (payload) => {
     if (payload && payload.text && !payload.hasSignResponse) {
       applyGreenCameraState(false);
+
+      const msgId = payload.messageId || payload.id || payload.msgId;
+      const conv = conversationStore.getConversation();
+      const exists = conv.some(
+        (m) =>
+          (msgId && m.id === msgId) ||
+          (m.sender === 'admin' && m.text === payload.text && Math.abs((m.timestamp || 0) - (payload.timestamp || Date.now())) < 4000)
+      );
+      if (!exists) {
+        conversationStore.addMessage({
+          id: msgId,
+          sender: 'admin',
+          senderName: payload.senderName || 'Admin (Officer Vance)',
+          text: payload.text,
+          type: 'text',
+          isActiveReply: true,
+          mode: payload.mode || 'FINGERSPELLING',
+          timestamp: payload.timestamp
+        });
+      }
+
       signAnimationService.playAnimationForMessage(payload.text, payload.mode || 'FINGERSPELLING');
     }
   });
@@ -453,6 +499,9 @@ export function initDeafPage() {
 
   // TEARDOWN FUNCTION: Called when navigating away
   return () => {
+    // Disconnect cleanly from WebSocket relay
+    communicationService.disconnect();
+
     // Stop all active camera tracks so webcam light turns off
     cameraService.stopCamera();
     handTrackingDebugService.detach();

@@ -2,6 +2,8 @@
 // Connects Deaf Person camera stream to Admin "CITIZEN LIVE FEED" across independent browser windows
 // Features: Dual-channel signaling (BroadcastChannel + storage event), ICE candidate queuing, auto-reconnect
 
+import { communicationService } from './communicationService.js';
+
 class WebRTCService {
   constructor() {
     this.role = null; // 'BROADCASTER' | 'RECEIVER' | null
@@ -22,10 +24,32 @@ class WebRTCService {
     this.initSignaling();
   }
 
-  // Dual-transport signaling: BroadcastChannel + localStorage event
+  // Dual-transport signaling: WebSocket (cross-device) + BroadcastChannel & localStorage (same-machine fallback)
   initSignaling() {
+    // 1. Cross-Device WebSocket transport via communicationService
+    const rtcEvents = [
+      'RTC_OFFER',
+      'RTC_ANSWER',
+      'ICE_CANDIDATE',
+      'RTC_REQUEST_STREAM',
+      'RTC_STREAM_READY',
+      'RTC_STREAM_STOPPED',
+      'REQUEST_STREAM',
+      'BROADCASTER_ANNOUNCE',
+      'STREAM_OFFLINE',
+      'PEER_CONNECTED'
+    ];
+
+    rtcEvents.forEach((evt) => {
+      communicationService.on(evt, (payload) => {
+        const data = payload && payload.type ? payload : { ...(payload || {}), type: evt };
+        this.handleSignalingMessage(data);
+      });
+    });
+
     if (typeof window === 'undefined') return;
 
+    // 2. Same-machine fallback: BroadcastChannel
     try {
       this.channel = new BroadcastChannel('signbridge_webrtc_channel_v3');
       this.channel.onmessage = (event) => {
@@ -37,7 +61,7 @@ class WebRTCService {
       console.warn('BroadcastChannel unavailable for WebRTC:', e);
     }
 
-    // Redundant signaling via storage event (guarantees cross-window delivery)
+    // 3. Same-machine fallback: storage event
     window.addEventListener('storage', (event) => {
       if (event.key === 'signbridge_rtc_sig_msg' && event.newValue) {
         try {
@@ -50,21 +74,32 @@ class WebRTCService {
 
   sendSignaling(message) {
     if (!message) return;
+
+    // Normalize event type to standard WebRTC signaling names
+    let eventType = message.type;
+    if (eventType === 'REQUEST_STREAM') eventType = 'RTC_REQUEST_STREAM';
+    if (eventType === 'BROADCASTER_ANNOUNCE') eventType = 'RTC_STREAM_READY';
+    if (eventType === 'STREAM_OFFLINE') eventType = 'RTC_STREAM_STOPPED';
+
     const msgWithId = {
       ...message,
-      id: 'sig_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6),
-      timestamp: Date.now()
+      type: eventType,
+      id: message.id || ('sig_' + Date.now() + '_' + Math.random().toString(36).substr(2, 6)),
+      timestamp: message.timestamp || Date.now()
     };
     this.seenMessageIds.add(msgWithId.id);
 
-    // BroadcastChannel
+    // 1. Cross-Device Signaling via Render WebSocket
+    communicationService.sendWsDirect(eventType, msgWithId);
+
+    // 2. Same-machine local fallback: BroadcastChannel
     if (this.channel) {
       try {
         this.channel.postMessage(msgWithId);
       } catch (e) {}
     }
 
-    // Redundant localStorage ping
+    // 3. Same-machine local fallback: localStorage ping
     try {
       if (typeof localStorage !== 'undefined') {
         localStorage.setItem('signbridge_rtc_sig_msg', JSON.stringify(msgWithId));
@@ -83,7 +118,19 @@ class WebRTCService {
     }
 
     switch (data.type) {
+      // Opposite peer connected to room -> trigger renegotiation if ready
+      case 'PEER_CONNECTED':
+        if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
+          console.log('[WebRTC Broadcaster] Opposite peer connected. Initiating offer...');
+          await this.startBroadcasterOffer();
+        } else if (this.role === 'RECEIVER' && !this.remoteStream) {
+          console.log('[WebRTC Receiver] Opposite peer connected. Requesting stream...');
+          this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
+        }
+        break;
+
       // Admin requests stream from Deaf Person broadcaster
+      case 'RTC_REQUEST_STREAM':
       case 'REQUEST_STREAM':
         if (this.role === 'BROADCASTER' && this.stream && this.stream.active) {
           console.log('[WebRTC Broadcaster] Received REQUEST_STREAM from Admin. Creating Offer...');
@@ -92,10 +139,11 @@ class WebRTCService {
         break;
 
       // Deaf broadcaster announces stream presence
+      case 'RTC_STREAM_READY':
       case 'BROADCASTER_ANNOUNCE':
         if (this.role === 'RECEIVER' && !this.remoteStream) {
           console.log('[WebRTC Receiver] Detected active broadcaster. Requesting stream...');
-          this.sendSignaling({ type: 'REQUEST_STREAM' });
+          this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
         }
         break;
 
@@ -121,6 +169,7 @@ class WebRTCService {
         break;
 
       // Broadcaster stopped camera
+      case 'RTC_STREAM_STOPPED':
       case 'STREAM_OFFLINE':
         if (this.role === 'RECEIVER') {
           console.log('[WebRTC Receiver] Broadcaster stream went offline.');
@@ -149,12 +198,12 @@ class WebRTCService {
     if (this.heartbeatTimer) clearInterval(this.heartbeatTimer);
     this.heartbeatTimer = setInterval(() => {
       if (this.stream && this.stream.active) {
-        this.sendSignaling({ type: 'BROADCASTER_ANNOUNCE' });
+        this.sendSignaling({ type: 'RTC_STREAM_READY' });
       }
     }, 1500);
 
     // Announce immediately and initiate offer
-    this.sendSignaling({ type: 'BROADCASTER_ANNOUNCE' });
+    this.sendSignaling({ type: 'RTC_STREAM_READY' });
     this.startBroadcasterOffer();
   }
 
@@ -241,7 +290,7 @@ class WebRTCService {
       this.heartbeatTimer = null;
     }
 
-    this.sendSignaling({ type: 'STREAM_OFFLINE' });
+    this.sendSignaling({ type: 'RTC_STREAM_STOPPED' });
 
     if (this.senderPC) {
       try { this.senderPC.close(); } catch (e) {}
@@ -268,13 +317,13 @@ class WebRTCService {
     }
 
     // Request stream from broadcaster immediately
-    this.sendSignaling({ type: 'REQUEST_STREAM' });
+    this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
 
     // Retry requesting stream every 1.5s until stream arrives
     if (this.requestRetryTimer) clearInterval(this.requestRetryTimer);
     this.requestRetryTimer = setInterval(() => {
       if (!this.remoteStream || !this.remoteStream.active) {
-        this.sendSignaling({ type: 'REQUEST_STREAM' });
+        this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
       } else {
         clearInterval(this.requestRetryTimer);
         this.requestRetryTimer = null;
@@ -335,7 +384,7 @@ class WebRTCService {
           if (this.onStatusChange) this.onStatusChange(true, this.remoteStream);
         } else if (this.receiverPC.iceConnectionState === 'disconnected' || this.receiverPC.iceConnectionState === 'failed') {
           console.warn('[WebRTC Receiver] ICE disconnected. Re-requesting stream...');
-          this.sendSignaling({ type: 'REQUEST_STREAM' });
+          this.sendSignaling({ type: 'RTC_REQUEST_STREAM' });
         }
       };
 

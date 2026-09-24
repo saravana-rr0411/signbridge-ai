@@ -150,21 +150,27 @@ class ConversationStore {
     return this.currentChatId;
   }
 
-  addMessage({ sender, senderName, text, rawSign = null, type = 'text', isActiveReply = false, metadata = null }) {
+  addMessage({ id = null, sender, senderName, text, rawSign = null, type = 'text', isActiveReply = false, metadata = null, timestamp = null, time = null }) {
     if (!text || !text.trim()) return null;
     const cleanText = text.trim();
     const now = new Date();
-    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const timeStr = time || now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const msgTimestamp = timestamp || now.getTime();
+
+    // Prevent duplicate insertion if id is already present
+    if (id && this.conversation.some((m) => m.id === id)) {
+      return this.conversation.find((m) => m.id === id);
+    }
 
     const message = {
-      id: 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4),
+      id: id || ('msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4)),
       chatId: this.currentChatId,
       sender: sender === 'admin' ? 'admin' : 'deaf',
       senderName: senderName || (sender === 'admin' ? 'Admin (Officer Vance)' : 'Deaf Person'),
       text: cleanText,
       rawSign: rawSign,
       time: timeStr,
-      timestamp: now.getTime(),
+      timestamp: msgTimestamp,
       type: type,
       isActiveReply: Boolean(isActiveReply),
       metadata: metadata

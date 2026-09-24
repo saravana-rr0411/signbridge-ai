@@ -15,3 +15,10 @@ export const API_ENDPOINTS = {
   PREDICT_SEQUENCE_V6_10_SIGN: `${API_BASE_URL}/predict/sequence/v6-10-sign`,
   PREDICT_STATIC: `${API_BASE_URL}/predict/static`
 };
+
+// WebSocket Relay Endpoints (derived dynamically from API_BASE_URL)
+export const WS_BASE_URL = API_BASE_URL.replace(/^http/, 'ws');
+
+export const getWsRelayUrl = (roomId = 'desk_04', role = 'deaf') => {
+  return `${WS_BASE_URL}/ws/relay/${roomId}/${role}`;
+};

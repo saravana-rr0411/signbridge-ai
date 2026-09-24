@@ -67,6 +67,9 @@ export function renderAdminPage() {
 }
 
 export function initAdminPage() {
+  // Connect to cross-device WebSocket relay as 'admin' peer in room 'desk_04'
+  communicationService.connect('desk_04', 'admin');
+
   const composerInput = document.getElementById('composer-input');
   const clearBtn = document.getElementById('composer-clear-btn');
   const composerForm = document.getElementById('admin-composer-form');
@@ -392,7 +395,27 @@ export function initAdminPage() {
         statusDotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
       }
 
-      renderChatMessages(conversationStore.getConversation());
+      // Sync incoming Deaf message to conversationStore if not already present
+      const msgId = payload.messageId || payload.id || payload.msgId;
+      const conv = conversationStore.getConversation();
+      const exists = conv.some(
+        (m) =>
+          (msgId && m.id === msgId) ||
+          (m.sender === 'deaf' && m.text === payload.text && Math.abs((m.timestamp || 0) - (payload.timestamp || Date.now())) < 4000)
+      );
+      if (!exists) {
+        conversationStore.addMessage({
+          id: msgId,
+          sender: 'deaf',
+          senderName: payload.senderName || 'Deaf Person',
+          text: payload.text,
+          rawSign: payload.rawSign || null,
+          type: 'hospital_sentence',
+          timestamp: payload.timestamp
+        });
+      } else {
+        renderChatMessages(conversationStore.getConversation());
+      }
 
       // AUTOMATIC TEXT-TO-SPEECH AT RUNTIME FOR INCOMING DEAF MESSAGE
       adminTtsService.speakIncomingDeafMessage(payload);
@@ -495,6 +518,9 @@ export function initAdminPage() {
 
   // TEARDOWN FUNCTION: Clean up subscriptions and remote video
   return () => {
+    // Disconnect cleanly from WebSocket relay
+    communicationService.disconnect();
+
     speechService.stop();
     adminTtsService.stop();
     unsubTtsState();
