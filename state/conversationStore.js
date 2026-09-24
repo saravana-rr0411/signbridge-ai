@@ -34,6 +34,22 @@ class ConversationStore {
     } catch (e) {
       console.warn('BroadcastChannel not available', e);
     }
+
+    // Redundant cross-tab storage event listener
+    if (typeof window !== 'undefined') {
+      window.addEventListener('storage', (event) => {
+        if (event.key === this.STORAGE_KEY && event.newValue) {
+          try {
+            const parsed = JSON.parse(event.newValue);
+            if (Array.isArray(parsed)) {
+              this.conversation = parsed;
+              this.historyRecords = this.loadHistory();
+              this.notify(false);
+            }
+          } catch (e) {}
+        }
+      });
+    }
   }
 
   loadChatId() {
@@ -134,7 +150,7 @@ class ConversationStore {
     return this.currentChatId;
   }
 
-  addMessage({ sender, senderName, text, type = 'text', isActiveReply = false }) {
+  addMessage({ sender, senderName, text, rawSign = null, type = 'text', isActiveReply = false, metadata = null }) {
     if (!text || !text.trim()) return null;
     const cleanText = text.trim();
     const now = new Date();
@@ -146,10 +162,12 @@ class ConversationStore {
       sender: sender === 'admin' ? 'admin' : 'deaf',
       senderName: senderName || (sender === 'admin' ? 'Admin (Officer Vance)' : 'Deaf Person'),
       text: cleanText,
+      rawSign: rawSign,
       time: timeStr,
       timestamp: now.getTime(),
       type: type,
-      isActiveReply: Boolean(isActiveReply)
+      isActiveReply: Boolean(isActiveReply),
+      metadata: metadata
     };
 
     if (sender === 'admin') {

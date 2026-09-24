@@ -1,0 +1,41 @@
+{
+  "project": "SignBridge AI",
+  "phase": "Landmark Extraction & Quality Control",
+  "timestamp": "2026-09-24",
+  "total_samples": 512,
+  "dynamic_samples_count": 156,
+  "static_letter_a_count": 356,
+  "average_raw_frames_per_video": 77.16,
+  "target_sequence_length": 30,
+  "feature_dim_per_frame": 150,
+  "total_sequence_features": 4500,
+  "missing_hand_frame_percentage": 36.76,
+  "left_hand_frame_coverage_pct": 33.63,
+  "right_hand_frame_coverage_pct": 59.15,
+  "distinct_signers_count": 44,
+  "split_distribution": {
+    "test": 26,
+    "val": 25,
+    "train": 105
+  },
+  "samples_per_class": {
+    "help": 9,
+    "doctor": 10,
+    "hospital": 7,
+    "sick": 9,
+    "appointment": 9,
+    "where": 9,
+    "bathroom": 9,
+    "yes": 14,
+    "no": 13,
+    "please": 7,
+    "thank_you": 7,
+    "wait": 10,
+    "understand": 8,
+    "problem": 9,
+    "money": 8,
+    "pay": 6,
+    "document": 12
+  },
+  "quality_status": "READY_FOR_MODEL_TRAINING"
+}

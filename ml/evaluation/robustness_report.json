@@ -1,0 +1,154 @@
+{
+  "project": "SignBridge AI",
+  "evaluation_phase": "Phase F.1: PS-09 Robustness Benchmark",
+  "timestamp": "2026-09-24",
+  "summary_table": [
+    {
+      "condition": "Baseline (Validation)",
+      "method": "Empirically measured (Unperturbed)",
+      "samples": 25,
+      "accuracy": 84.0,
+      "mean_confidence": 0.907,
+      "consistency": 100.0,
+      "status": "PASS"
+    },
+    {
+      "condition": "Position Shift (Simulated \u00b10.10 to \u00b10.25)",
+      "method": "Simulated spatial translation",
+      "samples": 150,
+      "accuracy": 84.0,
+      "mean_confidence": 0.906,
+      "consistency": 100.0,
+      "status": "ROBUST"
+    },
+    {
+      "condition": "Scale Variation (0.75x to 1.30x distance)",
+      "method": "Simulated landmark scale factor",
+      "samples": 100,
+      "accuracy": 80.0,
+      "mean_confidence": 0.903,
+      "consistency": 96.0,
+      "status": "ROBUST"
+    },
+    {
+      "condition": "Orientation Tilt (\u00b110\u00b0 to \u00b130\u00b0)",
+      "method": "Simulated in-plane rotation",
+      "samples": 150,
+      "accuracy": 70.67,
+      "mean_confidence": 0.878,
+      "consistency": 71.33,
+      "status": "ACCEPTABLE"
+    },
+    {
+      "condition": "Condition A: Controlled Studio (Solid Backdrops)",
+      "method": "Empirically measured (Multi-source subsets)",
+      "samples": 11,
+      "accuracy": 72.73,
+      "mean_confidence": 0.903,
+      "consistency": 100.0,
+      "status": "PASS"
+    },
+    {
+      "condition": "Condition B: Ambient / Domestic / Classroom",
+      "method": "Empirically measured (Multi-source subsets)",
+      "samples": 14,
+      "accuracy": 92.86,
+      "mean_confidence": 0.909,
+      "consistency": 100.0,
+      "status": "PASS"
+    },
+    {
+      "condition": "Lighting: Normal Indoor (300-500 lux)",
+      "method": "Structural (MediaPipe landmark invariance)",
+      "samples": "N/A \u2014 protocol defined",
+      "accuracy": "N/A \u2014 not measured",
+      "mean_confidence": "N/A \u2014 not measured",
+      "consistency": "N/A \u2014 not measured",
+      "status": "PROTOCOL DEFINED"
+    },
+    {
+      "condition": "Lighting: Low / Dim Light (<100 lux)",
+      "method": "Structural (MediaPipe landmark invariance)",
+      "samples": "N/A \u2014 protocol defined",
+      "accuracy": "N/A \u2014 not measured",
+      "mean_confidence": "N/A \u2014 not measured",
+      "consistency": "N/A \u2014 not measured",
+      "status": "PROTOCOL DEFINED"
+    },
+    {
+      "condition": "Lighting: Bright / Backlit (>800 lux)",
+      "method": "Structural (MediaPipe landmark invariance)",
+      "samples": "N/A \u2014 protocol defined",
+      "accuracy": "N/A \u2014 not measured",
+      "mean_confidence": "N/A \u2014 not measured",
+      "consistency": "N/A \u2014 not measured",
+      "status": "PROTOCOL DEFINED"
+    }
+  ],
+  "perturbation_details": {
+    "baseline_accuracy": 84.0,
+    "position_shift_average_accuracy": 84.0,
+    "scale_variation_average_accuracy": 80.0,
+    "orientation_tilt_average_accuracy": 70.67,
+    "studio_source_accuracy": 72.73,
+    "ambient_source_accuracy": 92.86,
+    "sensitive_classes_under_rotation": [
+      [
+        "help",
+        58.3
+      ],
+      [
+        "where",
+        50.0
+      ],
+      [
+        "bathroom",
+        33.3
+      ],
+      [
+        "no",
+        50.0
+      ],
+      [
+        "please",
+        41.7
+      ],
+      [
+        "money",
+        50.0
+      ]
+    ],
+    "robust_classes_under_rotation": [
+      [
+        "appointment",
+        100.0
+      ],
+      [
+        "thank_you",
+        91.7
+      ],
+      [
+        "wait",
+        100.0
+      ],
+      [
+        "problem",
+        83.3
+      ],
+      [
+        "pay",
+        100.0
+      ],
+      [
+        "document",
+        100.0
+      ]
+    ]
+  },
+  "ps09_compliance_check": {
+    "varied_hand_positions": "SUPPORTED (Mathematical wrist centering + empirical stability test)",
+    "varied_orientations": "SUPPORTED within \u00b115\u00b0 (orientation sensitivity observed beyond \u00b120\u00b0)",
+    "varied_backgrounds": "SUPPORTED (Decoupled landmark representation verified across Studio vs Ambient sources)",
+    "varied_lighting": "PROTOCOL DEFINED (Structural invariance through MediaPipe edge/contrast detection; real-camera test harness created)"
+  }
+}

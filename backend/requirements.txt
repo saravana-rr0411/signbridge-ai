@@ -1,0 +1,23 @@
+# SignBridge AI Backend & ML Inference Service Requirements
+fastapi>=0.110.0
+uvicorn[standard]>=0.28.0
+pydantic>=2.6.0
+python-multipart>=0.0.9
+websockets>=12.0
+
+# Computer Vision & MediaPipe Landmark Extraction
+opencv-python-headless>=4.9.0.80
+mediapipe>=0.10.11
+numpy>=1.26.0
+pillow>=10.2.0
+
+# Machine Learning & Deep Learning Frameworks
+scikit-learn>=1.4.0
+torch>=2.2.0
+torchvision>=0.17.0
+
+# Utilities
+python-dotenv>=1.0.1
+aiofiles>=23.2.1
+requests>=2.31.0
+tqdm>=4.66.0

@@ -1,0 +1,429 @@
+{
+  "project": "SignBridge AI",
+  "version": "1.2.0",
+  "status": "empirically_verified",
+  "vocabulary_size": 18,
+  "description": "Verified 18-class frozen vocabulary (17 dynamic + 1 static) for Civic Sign Language Communication",
+  "input_spec": {
+    "temporal_window_frames": 30,
+    "landmarks_per_hand": 21,
+    "coordinates_per_landmark": 3,
+    "normalized_feature_dim_per_frame": 126,
+    "total_sequence_feature_dim": 3780
+  },
+  "classes": [
+    {
+      "id": 0,
+      "label": "help",
+      "display_text": "I need help",
+      "category": "emergency",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "help",
+      "verified": true,
+      "sample_count": 22,
+      "signer_count": 15,
+      "split_distribution": {
+        "test": 3,
+        "val": 4,
+        "train": 15
+      },
+      "license_verified": true,
+      "description": "Dominant 'A' handshape resting on flat non-dominant palm, moving upward together",
+      "notes": "Verified against WLASL_v0.3.json. 15 distinct signers across 12 production sources."
+    },
+    {
+      "id": 1,
+      "label": "doctor",
+      "display_text": "I need a doctor",
+      "category": "healthcare",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "doctor",
+      "verified": true,
+      "sample_count": 19,
+      "signer_count": 14,
+      "split_distribution": {
+        "train": 13,
+        "val": 3,
+        "test": 3
+      },
+      "license_verified": true,
+      "description": "Dominant bent hand tapping the non-dominant wrist pulse location",
+      "notes": "Verified against WLASL_v0.3.json. 14 distinct signers across 14 production sources."
+    },
+    {
+      "id": 2,
+      "label": "hospital",
+      "display_text": "Where is the hospital?",
+      "category": "healthcare",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "hospital",
+      "verified": true,
+      "sample_count": 13,
+      "signer_count": 13,
+      "split_distribution": {
+        "val": 2,
+        "train": 9,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "'H' handshape tracing a cross pattern on the upper shoulder/arm",
+      "notes": "Verified against WLASL_v0.3.json. 13 distinct signers across 12 production sources."
+    },
+    {
+      "id": 3,
+      "label": "sick",
+      "display_text": "I am sick / Need medical care",
+      "category": "healthcare",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "sick",
+      "verified": true,
+      "sample_count": 17,
+      "signer_count": 14,
+      "split_distribution": {
+        "test": 2,
+        "train": 12,
+        "val": 3
+      },
+      "license_verified": true,
+      "description": "Middle fingers of open-8 hands touching forehead and stomach simultaneously",
+      "notes": "Verified against WLASL_v0.3.json. 14 distinct signers across 15 production sources."
+    },
+    {
+      "id": 4,
+      "label": "appointment",
+      "display_text": "I have an appointment",
+      "category": "civic_desk",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "appointment",
+      "verified": true,
+      "sample_count": 13,
+      "signer_count": 13,
+      "split_distribution": {
+        "val": 2,
+        "train": 9,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Dominant curved hand rotating downward to settle firmly onto non-dominant fist",
+      "notes": "Verified against WLASL_v0.3.json. 13 distinct signers across 10 production sources."
+    },
+    {
+      "id": 5,
+      "label": "where",
+      "display_text": "Where is the counter?",
+      "category": "navigation",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "where",
+      "verified": true,
+      "sample_count": 15,
+      "signer_count": 15,
+      "split_distribution": {
+        "val": 3,
+        "train": 10,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Index finger extended upward, wiggling side to side",
+      "notes": "Verified against WLASL_v0.3.json. 15 distinct signers across 14 production sources."
+    },
+    {
+      "id": 6,
+      "label": "bathroom",
+      "display_text": "Where is the bathroom?",
+      "category": "navigation",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "bathroom",
+      "verified": true,
+      "sample_count": 16,
+      "signer_count": 15,
+      "split_distribution": {
+        "test": 2,
+        "train": 11,
+        "val": 3
+      },
+      "license_verified": true,
+      "description": "'T' handshape shaking side to side at chest height",
+      "notes": "Verified against WLASL_v0.3.json. 15 distinct signers across 12 production sources."
+    },
+    {
+      "id": 7,
+      "label": "yes",
+      "display_text": "Yes",
+      "category": "dialogue",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "yes",
+      "verified": true,
+      "sample_count": 22,
+      "signer_count": 17,
+      "split_distribution": {
+        "test": 3,
+        "val": 4,
+        "train": 15
+      },
+      "license_verified": true,
+      "description": "'S' fist nodding up and down from the wrist like a nodding head",
+      "notes": "Verified against WLASL_v0.3.json. 17 distinct signers across 15 production sources."
+    },
+    {
+      "id": 8,
+      "label": "no",
+      "display_text": "No",
+      "category": "dialogue",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "no",
+      "verified": true,
+      "sample_count": 22,
+      "signer_count": 18,
+      "split_distribution": {
+        "test": 3,
+        "val": 4,
+        "train": 15
+      },
+      "license_verified": true,
+      "description": "Index and middle fingers snapping down to touch thumb repeatedly",
+      "notes": "Verified against WLASL_v0.3.json. 18 distinct signers across 17 production sources."
+    },
+    {
+      "id": 9,
+      "label": "please",
+      "display_text": "Please help me",
+      "category": "civic_request",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "please",
+      "verified": true,
+      "sample_count": 15,
+      "signer_count": 14,
+      "split_distribution": {
+        "val": 3,
+        "train": 10,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Open flat palm moving in circular motion over center chest",
+      "notes": "Verified against WLASL_v0.3.json. 14 distinct signers across 14 production sources."
+    },
+    {
+      "id": 10,
+      "label": "thank_you",
+      "display_text": "Thank you",
+      "category": "civic_request",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "thank you",
+      "verified": true,
+      "sample_count": 14,
+      "signer_count": 11,
+      "split_distribution": {
+        "train": 10,
+        "val": 2,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Fingertips touching lips/chin and extending outward toward conversational partner",
+      "notes": "Verified against WLASL_v0.3.json. 11 distinct signers across 11 production sources."
+    },
+    {
+      "id": 11,
+      "label": "wait",
+      "display_text": "Please wait",
+      "category": "queue_timing",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "wait",
+      "verified": true,
+      "sample_count": 18,
+      "signer_count": 16,
+      "split_distribution": {
+        "test": 2,
+        "train": 13,
+        "val": 3
+      },
+      "license_verified": true,
+      "description": "Both palms open toward body, fingers wiggling alternately",
+      "notes": "Verified against WLASL_v0.3.json. 16 distinct signers across 13 production sources."
+    },
+    {
+      "id": 12,
+      "label": "understand",
+      "display_text": "I understand",
+      "category": "dialogue",
+      "modality": "dynamic_sequence",
+      "hands": "one_handed",
+      "dataset": "WLASL",
+      "source_class": "understand",
+      "verified": true,
+      "sample_count": 14,
+      "signer_count": 14,
+      "split_distribution": {
+        "train": 10,
+        "val": 2,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Index finger flicking upward into '1' handshape next to forehead",
+      "notes": "Verified against WLASL_v0.3.json. 14 distinct signers across 13 production sources."
+    },
+    {
+      "id": 13,
+      "label": "problem",
+      "display_text": "I have a problem",
+      "category": "civic_desk",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "problem",
+      "verified": true,
+      "sample_count": 16,
+      "signer_count": 13,
+      "split_distribution": {
+        "test": 2,
+        "train": 11,
+        "val": 3
+      },
+      "license_verified": true,
+      "description": "Both hands in bent-V handshape twisting knuckles against each other",
+      "notes": "Verified against WLASL_v0.3.json. 13 distinct signers across 12 production sources."
+    },
+    {
+      "id": 14,
+      "label": "money",
+      "display_text": "Cash / Fee payment",
+      "category": "banking",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "money",
+      "verified": true,
+      "sample_count": 14,
+      "signer_count": 13,
+      "split_distribution": {
+        "train": 10,
+        "val": 2,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Dominant flattened-O hand tapping open palm of non-dominant hand",
+      "notes": "Verified against WLASL_v0.3.json. 13 distinct signers across 13 production sources."
+    },
+    {
+      "id": 15,
+      "label": "pay",
+      "display_text": "Payment counter / I want to pay",
+      "category": "banking",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "pay",
+      "verified": true,
+      "sample_count": 14,
+      "signer_count": 11,
+      "split_distribution": {
+        "train": 10,
+        "val": 2,
+        "test": 2
+      },
+      "license_verified": true,
+      "description": "Dominant index finger flicking forward off the flat palm of non-dominant hand",
+      "notes": "Verified against WLASL_v0.3.json. 11 distinct signers across 11 production sources."
+    },
+    {
+      "id": 16,
+      "label": "document",
+      "display_text": "Here is my document / paper",
+      "category": "civic_desk",
+      "modality": "dynamic_sequence",
+      "hands": "two_handed",
+      "dataset": "WLASL",
+      "source_class": "paper",
+      "verified": true,
+      "sample_count": 18,
+      "signer_count": 15,
+      "split_distribution": {
+        "test": 2,
+        "train": 13,
+        "val": 3
+      },
+      "license_verified": true,
+      "description": "Heels of flat open hands brushing against each other twice backward",
+      "notes": "Verified against WLASL_v0.3.json. 15 distinct signers across 14 production sources."
+    },
+    {
+      "id": 17,
+      "label": "letter_a",
+      "display_text": "Ticket #A",
+      "category": "fingerspelling",
+      "modality": "static_handshape",
+      "hands": "one_handed",
+      "dataset": "ASL_Alphabet",
+      "source_class": "A",
+      "verified": true,
+      "sample_count": 3000,
+      "signer_count": 1,
+      "split_distribution": {
+        "train": 3000
+      },
+      "license_verified": true,
+      "description": "Static closed fist with thumb resting alongside index finger (letter 'A')",
+      "notes": "Verified against Kaggle grassknoted/asl-alphabet dataset under GPL 2 license. 3000 RGB 200x200 images for letter A."
+    }
+  ],
+  "verification_audit": {
+    "removed_or_replaced_classes": [
+      {
+        "original_label": "emergency",
+        "dataset": "WLASL",
+        "source_class": "emergency",
+        "verified": false,
+        "sample_count": 7,
+        "license_verified": true,
+        "reason_for_removal": "Insufficient sample count in WLASL (only 7 total instances, only 6 reachable, 1 in test split). Fails minimum sample threshold for robust training.",
+        "replacement_class": "sick",
+        "replacement_reason": "High-priority civic healthcare triage sign with 17 instances, 14 signers, and 10 verified reachable instances."
+      },
+      {
+        "original_label": "bank",
+        "dataset": "WLASL",
+        "source_class": "bank",
+        "verified": false,
+        "sample_count": 7,
+        "license_verified": true,
+        "reason_for_removal": "Insufficient sample count in WLASL (only 7 total instances, 4 dead links, only 3 reachable). Cannot support train/val/test splits without extreme overfitting.",
+        "replacement_class": "pay",
+        "replacement_reason": "Essential civic counter transaction sign ('I want to pay / payment desk') with 14 instances, 11 signers, and 8 verified reachable instances."
+      },
+      {
+        "original_label": "thanks",
+        "dataset": "WLASL",
+        "source_class": "thanks",
+        "verified": false,
+        "sample_count": 0,
+        "license_verified": true,
+        "reason_for_removal": "Gloss 'thanks' does not exist in WLASL_v0.3.json. The official verified WLASL gloss is 'thank you'.",
+        "replacement_class": "thank_you",
+        "replacement_reason": "Corrected source gloss mapping to 'thank you' (14 instances across 11 distinct signers)."
+      }
+    ]
+  }
+}

@@ -1,0 +1,234 @@
+{
+  "timestamp": "2026-09-24 21:24:28",
+  "model_version": "v3_six_sign",
+  "scope": "Focused 6-Sign Recognition (HELP, YES, NO, THANK_YOU, PLEASE, HELLO)",
+  "production_status": {
+    "v2_production_active": true,
+    "v3_activated": false,
+    "comment": "V2 production untouched and active; V3 evaluated strictly offline"
+  },
+  "dataset_summary": {
+    "total_samples": 220,
+    "train_samples": 144,
+    "val_samples": 37,
+    "test_samples": 39,
+    "test_signers": 6,
+    "signer_overlap_train_val": 0,
+    "signer_overlap_train_test": 0,
+    "signer_overlap_val_test": 0
+  },
+  "v3_six_sign_metrics": {
+    "accuracy": 0.9231,
+    "macro_precision": 0.875,
+    "macro_recall": 0.9417,
+    "macro_f1": 0.8674,
+    "weighted_f1": 0.9418,
+    "parameters": 181190,
+    "model_size_kb": 2147.9,
+    "latency": {
+      "mean_ms": 0.76,
+      "median_ms": 0.76,
+      "p95_ms": 0.78,
+      "min_ms": 0.72,
+      "max_ms": 0.81,
+      "throughput_fps": 1321.3
+    },
+    "confidence_distribution": {
+      "mean_overall": 0.9724,
+      "mean_correct": 0.9703,
+      "mean_incorrect": 0.9985,
+      "min_conf": 0.5179,
+      "max_conf": 1.0,
+      "samples_above_70_thresh": 37,
+      "accepted_percentage": 94.9,
+      "accuracy_above_70_thresh": 0.9189
+    },
+    "per_class": {
+      "HELP": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 8
+      },
+      "YES": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 8
+      },
+      "NO": {
+        "precision": 1.0,
+        "recall": 0.9,
+        "f1_score": 0.9474,
+        "support": 10
+      },
+      "THANK_YOU": {
+        "precision": 0.25,
+        "recall": 1.0,
+        "f1_score": 0.4,
+        "support": 1
+      },
+      "PLEASE": {
+        "precision": 1.0,
+        "recall": 0.75,
+        "f1_score": 0.8571,
+        "support": 8
+      },
+      "HELLO": {
+        "precision": 1.0,
+        "recall": 1.0,
+        "f1_score": 1.0,
+        "support": 4
+      }
+    },
+    "confusion_matrix": [
+      [
+        8,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        8,
+        0,
+        0,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        9,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        1,
+        0,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        2,
+        6,
+        0
+      ],
+      [
+        0,
+        0,
+        0,
+        0,
+        0,
+        4
+      ]
+    ]
+  },
+  "v2_comparison": {
+    "v2_production_baseline_17_classes": {
+      "accuracy": 0.7647,
+      "macro_f1": 0.742,
+      "vocabulary_size": 17,
+      "features": 150,
+      "note": "Reported on original frozen 17-class WLASL test split (17 samples)"
+    },
+    "v2_on_overlapping_test_samples": {
+      "evaluated_samples": 35,
+      "signs_evaluated": [
+        "help",
+        "no",
+        "please",
+        "thank_you",
+        "yes"
+      ],
+      "v2_accuracy": 0.8286,
+      "v2_macro_f1": 0.5717,
+      "v3_accuracy_on_same_subset": 0.9143,
+      "v3_macro_f1_on_same_subset": 0.8409,
+      "delta_accuracy": 0.0857,
+      "delta_macro_f1": 0.2692
+    },
+    "per_sign_direct_comparison": {
+      "HELP": {
+        "support": 8,
+        "v2_correct": 5,
+        "v2_recall": 0.625,
+        "v2_mean_conf": 0.9297,
+        "v3_correct": 8,
+        "v3_recall": 1.0,
+        "v3_mean_conf": 0.9999,
+        "recall_improvement": 0.375
+      },
+      "YES": {
+        "support": 8,
+        "v2_correct": 8,
+        "v2_recall": 1.0,
+        "v2_mean_conf": 0.8917,
+        "v3_correct": 8,
+        "v3_recall": 1.0,
+        "v3_mean_conf": 0.99,
+        "recall_improvement": 0.0
+      },
+      "NO": {
+        "support": 10,
+        "v2_correct": 9,
+        "v2_recall": 0.9,
+        "v2_mean_conf": 0.8196,
+        "v3_correct": 9,
+        "v3_recall": 0.9,
+        "v3_mean_conf": 0.9133,
+        "recall_improvement": 0.0
+      },
+      "PLEASE": {
+        "support": 8,
+        "v2_correct": 6,
+        "v2_recall": 0.75,
+        "v2_mean_conf": 0.9793,
+        "v3_correct": 6,
+        "v3_recall": 0.75,
+        "v3_mean_conf": 0.9842,
+        "recall_improvement": 0.0
+      },
+      "THANK_YOU": {
+        "support": 1,
+        "v2_correct": 1,
+        "v2_recall": 1.0,
+        "v2_mean_conf": 0.9966,
+        "v3_correct": 1,
+        "v3_recall": 1.0,
+        "v3_mean_conf": 0.9996,
+        "recall_improvement": 0.0
+      },
+      "HELLO": {
+        "support": 4,
+        "v2_correct": 0,
+        "v2_recall": 0.0,
+        "v2_note": "OOD (not in V2 17-class vocabulary; predicted: no, no, no, no)",
+        "v3_correct": 4,
+        "v3_recall": 1.0,
+        "v3_mean_conf": 1.0,
+        "recall_improvement": 1.0
+      }
+    },
+    "v2_model_specs": {
+      "parameters": 174993,
+      "model_size_kb": 2074.4,
+      "latency": {
+        "mean_ms": 0.76,
+        "median_ms": 0.76,
+        "p95_ms": 0.79,
+        "min_ms": 0.72,
+        "max_ms": 0.86,
+        "throughput_fps": 1310.2
+      }
+    }
+  }
+}

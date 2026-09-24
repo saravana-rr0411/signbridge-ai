@@ -9,11 +9,16 @@ import { signRecognitionService } from '../services/signRecognitionService.js';
 import { signAnimationService } from '../services/signAnimationService.js';
 import { conversationStore } from '../state/conversationStore.js';
 import { communicationService } from '../services/communicationService.js';
+import { handTrackingDebugService } from '../services/handTrackingDebugService.js';
+import { landmarkPipelineService } from '../services/landmarkPipelineService.js';
+import { hospitalConversationService } from '../services/conversation/hospitalConversationService.js';
 
 export function renderDeafPage() {
   const conversation = conversationStore.getConversation();
   const animState = signAnimationService.getState();
-  const transcript = signRecognitionService.getTranscript();
+  const hospState = hospitalConversationService.getState();
+  const transcript = hospState.currentPhrase || signRecognitionService.getTranscript() || 'Hello, I need help.';
+  const rawSign = hospState.currentSign || signRecognitionService.getRawSign() || '—';
 
   return `
     <div class="h-screen w-full flex bg-surface font-body text-on-surface antialiased overflow-hidden">
@@ -22,15 +27,30 @@ export function renderDeafPage() {
 
       <!-- Main Three-Panel Viewport (~33% / ~33% / ~34%) -->
       <main class="flex-1 h-full overflow-y-auto lg:overflow-hidden p-4 lg:p-5 bg-surface flex flex-col">
-        <!-- Top Mobile Header / Bar (Only visible on small screens) -->
-        <div class="lg:hidden flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/30 flex-shrink-0">
-          <div class="flex items-center gap-2">
+        <!-- Operational Top Bar with Lightweight Public Service Context Selector -->
+        <div class="flex items-center justify-between pb-3 mb-2 border-b border-outline-variant/30 flex-shrink-0 flex-wrap gap-2">
+          <div class="flex items-center gap-2.5">
             <span class="material-symbols-outlined text-primary text-[24px]">sign_language</span>
-            <span class="font-bold text-lg text-primary">Deaf Person Interface</span>
+            <div>
+              <h1 class="text-lg lg:text-xl font-extrabold text-primary leading-tight">Deaf Person Interface</h1>
+              <span class="text-xs text-on-surface-variant font-medium">Public Service Communication Relay</span>
+            </div>
           </div>
-          <span class="text-xs px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold uppercase tracking-wider">
-            Desk #04
-          </span>
+          <div class="flex items-center gap-2">
+            <!-- Context Selector -->
+            <div class="flex items-center gap-1.5 px-2.5 py-1 bg-surface-container rounded-lg border border-outline-variant/40">
+              <span class="material-symbols-outlined text-rose-600 text-[16px]">local_hospital</span>
+              <label for="context-selector" class="text-xs font-bold text-slate-700">Context:</label>
+              <select id="context-selector" class="text-xs font-bold bg-transparent text-rose-800 focus:outline-none cursor-pointer">
+                <option value="hospital" selected>Hospital (First-Visit)</option>
+                <option value="bank" disabled>Bank (Coming Soon)</option>
+                <option value="gov" disabled>Government Office (Coming Soon)</option>
+              </select>
+            </div>
+            <span class="text-xs px-2.5 py-1 rounded-full bg-secondary-container text-on-secondary-container font-bold uppercase tracking-wider">
+              Desk #04
+            </span>
+          </div>
         </div>
 
         <!-- 3-Panel Split View -->
@@ -46,8 +66,10 @@ export function renderDeafPage() {
             ${renderSignTranscript(
               transcript,
               'deaf-live-transcript',
-              signRecognitionService.getStatusText(),
-              'deaf-recognition-status'
+              signRecognitionService.getStatusText() || 'Recognition: Ready',
+              'deaf-recognition-status',
+              rawSign,
+              'Hospital First-Visit'
             )}
           </section>
 
@@ -114,13 +136,31 @@ export function initDeafPage() {
     }
   }
 
-  // AUTOMATIC CAMERA START: Immediately request camera permission & stream live feed
+  const btnStartCamera = document.getElementById('btn-start-camera');
+  const btnStopCamera = document.getElementById('btn-stop-camera');
+  const cameraStoppedOverlay = document.getElementById('camera-stopped-overlay');
+
+
+
+  // START CAMERA: Request camera permission & stream live feed
   async function startLiveCamera() {
     if (!videoEl) return;
     const res = await cameraService.startCamera(videoEl);
     if (res.success) {
+      if (cameraStoppedOverlay) cameraStoppedOverlay.classList.add('hidden');
       if (permissionBanner) permissionBanner.classList.add('hidden');
-      // Connect Sign-to-Text Recognition to existing live webcam element (No extra camera stream!)
+
+      // Reset live camera prediction overlay on camera start
+      const camPredText = document.getElementById('live-camera-prediction-text');
+      const camPredDot = document.getElementById('live-camera-prediction-dot');
+      if (camPredText) camPredText.textContent = 'Detecting...';
+      if (camPredDot) camPredDot.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-pulse';
+
+      // PHASE 1 & 2: Attach Hand Tracking & Feature Pipeline Debugger to existing live webcam
+      const canvasEl = document.getElementById('hand-tracking-canvas');
+      handTrackingDebugService.attach(videoEl, canvasEl);
+
+      // PHASE 6: Enable Real Continuous Sign Recognition (Webcam -> Landmarks -> 30x150 -> FastAPI -> Admin)
       signRecognitionService.startRecognition(videoEl);
     } else {
       if (permissionBanner) {
@@ -132,8 +172,31 @@ export function initDeafPage() {
     }
   }
 
-  // Automatically start immediately on page load
-  startLiveCamera();
+  // STOP CAMERA: Stop all tracks, clear srcObject, stop MediaPipe processing, reset feature buffer, remove overlays
+  function stopLiveCamera() {
+    cameraService.stopCamera();
+    signRecognitionService.stopRecognition();
+    handTrackingDebugService.detach();
+    landmarkPipelineService.reset();
+    if (cameraStoppedOverlay) cameraStoppedOverlay.classList.remove('hidden');
+    const camPredText = document.getElementById('live-camera-prediction-text');
+    const camPredDot = document.getElementById('live-camera-prediction-dot');
+    if (camPredText) camPredText.textContent = 'Detecting...';
+    if (camPredDot) camPredDot.className = 'w-2 h-2 rounded-full bg-slate-500';
+  }
+
+  // Bind testing camera controls
+  if (btnStartCamera) {
+    btnStartCamera.addEventListener('click', () => {
+      startLiveCamera();
+    });
+  }
+
+  if (btnStopCamera) {
+    btnStopCamera.addEventListener('click', () => {
+      stopLiveCamera();
+    });
+  }
 
   // Retry permission if previously denied
   if (btnRequestPermission) {
@@ -159,26 +222,34 @@ export function initDeafPage() {
     });
   }
 
-  // Mock Sign Selection Demo Control (Dropdown + Send Button)
-  const demoSignSelect = document.getElementById('demo-sign-select');
-  const btnTriggerSign = document.getElementById('btn-trigger-selected-sign');
+  // Context Selector listener
+  const contextSelector = document.getElementById('context-selector');
+  if (contextSelector) {
+    contextSelector.addEventListener('change', (e) => {
+      hospitalConversationService.setContext(e.target.value);
+    });
+  }
 
-  if (btnTriggerSign && demoSignSelect) {
-    btnTriggerSign.addEventListener('click', () => {
-      const phrase = demoSignSelect.value;
-      if (phrase) {
-        signRecognitionService.recognizePhrase(phrase);
+  // Hospital First-Visit Phrase Selection Control (Template Selector)
+  const hospitalPhraseSelect = document.getElementById('hospital-phrase-select');
+  const btnTriggerHospitalPhrase = document.getElementById('btn-trigger-hospital-phrase');
+
+  if (btnTriggerHospitalPhrase && hospitalPhraseSelect) {
+    btnTriggerHospitalPhrase.addEventListener('click', () => {
+      const phraseId = hospitalPhraseSelect.value;
+      if (phraseId) {
+        hospitalConversationService.selectPhraseById(phraseId);
       }
     });
   }
 
-  // Quick 1-click Sign Simulation Pills
-  document.querySelectorAll('.btn-simulate-sign').forEach((btn) => {
+  // Quick Hospital First-Visit Phrase Action Pills
+  document.querySelectorAll('.btn-quick-hospital-phrase').forEach((btn) => {
     btn.addEventListener('click', () => {
-      const signText = btn.getAttribute('data-sign');
-      if (signText) {
-        if (demoSignSelect) demoSignSelect.value = signText;
-        signRecognitionService.recognizePhrase(signText);
+      const phraseId = btn.getAttribute('data-phrase-id');
+      if (phraseId) {
+        if (hospitalPhraseSelect) hospitalPhraseSelect.value = phraseId;
+        hospitalConversationService.selectPhraseById(phraseId);
       }
     });
   });
@@ -189,6 +260,7 @@ export function initDeafPage() {
     resetDemoBtn.addEventListener('click', () => {
       conversationStore.resetDemo();
       signRecognitionService.reset();
+      hospitalConversationService.reset();
       signAnimationService.stop();
       applyGreenCameraState(false);
     });
@@ -233,8 +305,24 @@ export function initDeafPage() {
   // Subscribe to Sign Recognition updates (progressive real-time text & status)
   const unsubRecog = signRecognitionService.subscribe((recog) => {
     const transcriptEl = document.getElementById('deaf-live-transcript');
-    if (transcriptEl) {
+    if (transcriptEl && recog.transcript) {
       transcriptEl.innerHTML = `"${recog.transcript}" <span class="inline-block w-2 h-5 bg-secondary ml-1 animate-pulse align-middle"></span>`;
+    }
+
+    // Update Live Camera Prediction Overlay Badge (Driven ONLY by real live ML callback)
+    const cameraPredText = document.getElementById('live-camera-prediction-text');
+    const cameraPredDot = document.getElementById('live-camera-prediction-dot');
+    if (cameraPredText && recog.livePredictionText) {
+      cameraPredText.textContent = recog.livePredictionText;
+      if (cameraPredDot) {
+        if (recog.livePredictionText.includes('Uncertain')) {
+          cameraPredDot.className = 'w-2 h-2 rounded-full bg-amber-400 animate-pulse';
+        } else if (recog.livePredictionText.includes('Detecting')) {
+          cameraPredDot.className = 'w-2 h-2 rounded-full bg-cyan-400 animate-pulse';
+        } else {
+          cameraPredDot.className = 'w-2 h-2 rounded-full bg-emerald-400';
+        }
+      }
     }
 
     const statusTextEl = document.getElementById('deaf-recognition-status');
@@ -247,6 +335,8 @@ export function initDeafPage() {
         statusDotEl.className = 'w-2 h-2 rounded-full bg-amber-500 animate-ping';
       } else if (recog.statusCode === 'CONFIRMED') {
         statusDotEl.className = 'w-2 h-2 rounded-full bg-emerald-500 animate-pulse';
+      } else if (recog.statusCode === 'UNCERTAIN') {
+        statusDotEl.className = 'w-2 h-2 rounded-full bg-amber-500';
       } else {
         statusDotEl.className = 'w-2 h-2 rounded-full bg-emerald-500';
       }
@@ -296,6 +386,12 @@ export function initDeafPage() {
                 <span class="material-symbols-outlined text-[15px] text-primary">visibility</span>
               </div>
               <div class="max-w-[90%] bg-white border-2 border-primary/20 text-primary rounded-2xl rounded-tr-xs px-3.5 py-2.5 shadow-xs">
+                ${msg.rawSign ? `
+                  <div class="text-[10px] font-mono font-bold text-slate-500 mb-1 pb-1 border-b border-outline-variant/30 flex items-center gap-1">
+                    <span class="material-symbols-outlined text-[12px] text-slate-400">sign_language</span>
+                    <span>Recognized: <span class="text-emerald-700">${msg.rawSign}</span></span>
+                  </div>
+                ` : ''}
                 <p class="text-sm font-semibold leading-relaxed">"${msg.text}"</p>
               </div>
             </div>
@@ -318,11 +414,25 @@ export function initDeafPage() {
     }
   });
 
+  // Subscribe to Hospital Conversation Service (dual updates: raw sign + contextual message)
+  const unsubHosp = hospitalConversationService.subscribe((hosp) => {
+    const transcriptEl = document.getElementById('deaf-live-transcript');
+    const rawSignEl = document.getElementById('deaf-live-transcript-raw-sign');
+
+    if (transcriptEl && hosp.currentPhrase) {
+      transcriptEl.innerHTML = `"${hosp.currentPhrase}" <span class="inline-block w-1.5 h-4 bg-secondary ml-1 animate-pulse align-middle"></span>`;
+    }
+    if (rawSignEl) {
+      rawSignEl.textContent = hosp.currentSign || '— (Template Selected)';
+    }
+  });
+
   // Listen for demo reset across tabs
   const unsubReset = communicationService.on('DEMO_RESET', () => {
     applyGreenCameraState(false);
     signAnimationService.stop();
     signRecognitionService.reset();
+    hospitalConversationService.reset();
   });
 
   // Initial check on camera state
@@ -336,10 +446,13 @@ export function initDeafPage() {
   return () => {
     // Stop all active camera tracks so webcam light turns off
     cameraService.stopCamera();
+    handTrackingDebugService.detach();
+    landmarkPipelineService.reset();
     signRecognitionService.stopRecognition();
     signAnimationService.stop();
     unsubAnim();
     unsubRecog();
+    unsubHosp();
     unsubConv();
     unsubComm();
     unsubReset();

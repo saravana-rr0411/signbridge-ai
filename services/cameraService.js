@@ -45,6 +45,22 @@ class CameraService {
       return { success: false, error: this.errorMessage };
     }
 
+    // Do NOT request a second camera stream if one already exists and is active
+    if (this.stream && this.stream.active) {
+      const activeTracks = this.stream.getVideoTracks().filter(t => t.readyState === 'live');
+      if (activeTracks.length > 0) {
+        if (videoElement && videoElement.srcObject !== this.stream) {
+          this.localVideoElement = videoElement;
+          videoElement.srcObject = this.stream;
+          videoElement.autoplay = true;
+          videoElement.playsInline = true;
+          videoElement.muted = true;
+          videoElement.play().catch(() => {});
+        }
+        return { success: true, stream: this.stream };
+      }
+    }
+
     try {
       this.status = 'REQUESTING';
       this.errorMessage = null;

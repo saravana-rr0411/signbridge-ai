@@ -1,0 +1,80 @@
+{
+  "phase": "Phase 4 - Live vs Training Landmark Distribution Debug",
+  "status": "DIAGNOSIS_COMPLETE",
+  "hand_ordering": {
+    "compatible": false,
+    "root_cause": "MediaPipe JS @mediapipe/hands assumes mirrored selfie input. In unmirrored camera stream, physical Right hand is classified as label=\"Left\". This routes the dominant right hand into feature slots [0..63] instead of [64..127].",
+    "training_feature_layout": "Left Hand: [0..63], Right Hand: [64..127], Pose: [128..149]",
+    "browser_feature_layout": "Left Hand: [0..63], Right Hand: [64..127], Pose: [128..149]",
+    "inversion_observed": true
+  },
+  "z_coordinate": {
+    "compatible": true,
+    "training_z": "wrist-centered: (lm.z - wrist.z) / scale, where scale = norm(coords[9] - coords[0])",
+    "browser_z": "wrist-centered: (lm.z - wrist.z) / scale, where scale = hypot(dx, dy, dz)",
+    "scale_math_identical": true
+  },
+  "coordinate_system_and_mirroring": {
+    "compatible": true,
+    "training_orientation": "Raw normalized image coordinates [0..1] directly from MediaPipe",
+    "browser_orientation": "Raw normalized image coordinates [0..1] directly from MediaPipe (CSS scaleX(-1) only affects canvas/video display, not tensor data)",
+    "x_flip_needed_for_model": false
+  },
+  "normalization": {
+    "compatible": true,
+    "training_wrist_norm": "[0.0, 0.0, 0.0]",
+    "browser_wrist_norm": "[0.0, 0.0, 0.0]",
+    "scale_anchor": "Wrist (0) to Middle Finger MCP (9)",
+    "validation": "PASS"
+  },
+  "pose_presence": {
+    "compatible": false,
+    "training_pose_active_pct": 98.7,
+    "browser_pose_active_pct": 0.0,
+    "root_cause": "Pose landmarks are completely unextracted in browser (zeros in [128..149], presence flag = 0.0) because only Hands detector is running."
+  },
+  "temporal_sampling": {
+    "training_avg_original_frames": 77.16025641025641,
+    "training_min_original_frames": 22,
+    "training_max_original_frames": 185,
+    "training_video_fps": 28.1,
+    "training_duration_seconds": 2.75,
+    "training_effective_sampling_fps": 10.93,
+    "browser_tracking_fps": 53.0,
+    "browser_duration_seconds": 0.57,
+    "temporal_duration_ratio": 4.85
+  },
+  "known_help_sample_stats": {
+    "sample_name": "help",
+    "shape": [
+      30,
+      150
+    ],
+    "min": -4.212,
+    "max": 3.55,
+    "mean": -0.3784822222222222,
+    "std": 0.883189899245001,
+    "median": -0.345,
+    "abs_mean": 0.7262653333333333,
+    "left_presence_frames": 27,
+    "right_presence_frames": 30,
+    "pose_presence_frames": 30
+  },
+  "global_training_stats": {
+    "total_samples": 156,
+    "shape": [
+      156,
+      30,
+      150
+    ],
+    "min": -9.281155586242676,
+    "max": 4.6551384925842285,
+    "mean": -0.08470787853002548,
+    "std": 0.6682285666465759,
+    "median": 0.0,
+    "abs_mean": 0.36274242401123047,
+    "avg_left_presence_frames": 10.070512820512821,
+    "avg_right_presence_frames": 17.71153846153846,
+    "avg_pose_presence_frames": 29.621794871794872
+  }
+}

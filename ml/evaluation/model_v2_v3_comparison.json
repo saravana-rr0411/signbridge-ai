@@ -1,0 +1,986 @@
+{
+  "timestamp": "2026-09-24",
+  "models": {
+    "v2": {
+      "checkpoint": "dynamic_bigru_v2.pt",
+      "input_shape": [
+        30,
+        150
+      ],
+      "num_classes": 17,
+      "parameter_count": 174993,
+      "model_size_bytes": 2124217,
+      "model_size_mb": 2.03,
+      "frozen_test_samples": 26,
+      "metrics": {
+        "accuracy": 0.8077,
+        "macro_precision": 0.7451,
+        "macro_recall": 0.7353,
+        "macro_f1": 0.7137,
+        "weighted_f1": 0.7923
+      },
+      "latency_cpu_ms": {
+        "mean_ms": 0.687,
+        "median_ms": 0.688,
+        "p95_ms": 0.7,
+        "p99_ms": 0.711,
+        "min_ms": 0.644,
+        "max_ms": 0.774,
+        "std_ms": 0.011
+      }
+    },
+    "v3": {
+      "checkpoint": "dynamic_bigru_v3.pt",
+      "input_shape": [
+        30,
+        168
+      ],
+      "num_classes": 22,
+      "parameter_count": 182230,
+      "model_size_bytes": 2211129,
+      "model_size_mb": 2.11,
+      "frozen_test_samples": 33,
+      "overall_22_class_metrics": {
+        "accuracy": 0.7879,
+        "macro_precision": 0.6667,
+        "macro_recall": 0.7045,
+        "macro_f1": 0.6652,
+        "weighted_f1": 0.7556
+      },
+      "existing_17_class_subset_metrics": {
+        "samples": 26,
+        "accuracy": 0.7692,
+        "macro_precision": 0.6275,
+        "macro_recall": 0.6765,
+        "macro_f1": 0.6255,
+        "weighted_f1": 0.741
+      },
+      "new_5_class_subset_metrics": {
+        "samples": 7,
+        "accuracy": 0.8571,
+        "macro_precision": 0.8,
+        "macro_recall": 0.8,
+        "macro_f1": 0.8,
+        "weighted_f1": 0.8571
+      },
+      "latency_cpu_ms": {
+        "mean_ms": 0.688,
+        "median_ms": 0.689,
+        "p95_ms": 0.701,
+        "p99_ms": 0.708,
+        "min_ms": 0.64,
+        "max_ms": 0.739,
+        "std_ms": 0.01
+      }
+    }
+  },
+  "per_class_comparison": {
+    "help": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "doctor": {
+      "is_new": false,
+      "v2_support_test": 0,
+      "v2_precision": 0.0,
+      "v2_recall": 0.0,
+      "v2_f1": 0.0,
+      "v3_support_test": 0,
+      "v3_precision": 0.0,
+      "v3_recall": 0.0,
+      "v3_f1": 0.0
+    },
+    "hospital": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "sick": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 0.5,
+      "v2_f1": 0.6667,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 0.5,
+      "v3_f1": 0.6667
+    },
+    "appointment": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "where": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 1,
+      "v3_precision": 0.0,
+      "v3_recall": 0.0,
+      "v3_f1": 0.0
+    },
+    "bathroom": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 0.5,
+      "v2_f1": 0.6667,
+      "v3_support_test": 2,
+      "v3_precision": 0.5,
+      "v3_recall": 0.5,
+      "v3_f1": 0.5
+    },
+    "yes": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 0.5,
+      "v2_f1": 0.6667,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 0.5,
+      "v3_f1": 0.6667
+    },
+    "no": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 0.5,
+      "v2_recall": 1.0,
+      "v2_f1": 0.6667,
+      "v3_support_test": 2,
+      "v3_precision": 0.5,
+      "v3_recall": 1.0,
+      "v3_f1": 0.6667
+    },
+    "please": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 1,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "thank_you": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 1,
+      "v3_precision": 0.5,
+      "v3_recall": 1.0,
+      "v3_f1": 0.6667
+    },
+    "wait": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 0.5,
+      "v2_recall": 1.0,
+      "v2_f1": 0.6667,
+      "v3_support_test": 1,
+      "v3_precision": 0.5,
+      "v3_recall": 1.0,
+      "v3_f1": 0.6667
+    },
+    "understand": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "problem": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 0.6667,
+      "v2_recall": 1.0,
+      "v2_f1": 0.8,
+      "v3_support_test": 2,
+      "v3_precision": 0.6667,
+      "v3_recall": 1.0,
+      "v3_f1": 0.8
+    },
+    "money": {
+      "is_new": false,
+      "v2_support_test": 2,
+      "v2_precision": 1.0,
+      "v2_recall": 1.0,
+      "v2_f1": 1.0,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "pay": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 0.0,
+      "v2_recall": 0.0,
+      "v2_f1": 0.0,
+      "v3_support_test": 1,
+      "v3_precision": 0.0,
+      "v3_recall": 0.0,
+      "v3_f1": 0.0
+    },
+    "document": {
+      "is_new": false,
+      "v2_support_test": 1,
+      "v2_precision": 0.0,
+      "v2_recall": 0.0,
+      "v2_f1": 0.0,
+      "v3_support_test": 1,
+      "v3_precision": 0.0,
+      "v3_recall": 0.0,
+      "v3_f1": 0.0
+    },
+    "hello": {
+      "is_new": true,
+      "v2_support_test": 0,
+      "v2_precision": null,
+      "v2_recall": null,
+      "v2_f1": null,
+      "v3_support_test": 1,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "good": {
+      "is_new": true,
+      "v2_support_test": 0,
+      "v2_precision": null,
+      "v2_recall": null,
+      "v2_f1": null,
+      "v3_support_test": 1,
+      "v3_precision": 0.0,
+      "v3_recall": 0.0,
+      "v3_f1": 0.0
+    },
+    "bad": {
+      "is_new": true,
+      "v2_support_test": 0,
+      "v2_precision": null,
+      "v2_recall": null,
+      "v2_f1": null,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "water": {
+      "is_new": true,
+      "v2_support_test": 0,
+      "v2_precision": null,
+      "v2_recall": null,
+      "v2_f1": null,
+      "v3_support_test": 2,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    },
+    "food": {
+      "is_new": true,
+      "v2_support_test": 0,
+      "v2_precision": null,
+      "v2_recall": null,
+      "v2_f1": null,
+      "v3_support_test": 1,
+      "v3_precision": 1.0,
+      "v3_recall": 1.0,
+      "v3_f1": 1.0
+    }
+  },
+  "target_signs_evaluation": {
+    "please": {
+      "v2": {
+        "in_vocabulary": true,
+        "total_samples": 7,
+        "total_correct": 7,
+        "accuracy_all": 1.0,
+        "test_total": 1,
+        "test_correct": 1,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 89,
+            "split": "val",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.73,
+            "target_confidence": 99.73
+          },
+          {
+            "index": 90,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.88,
+            "target_confidence": 99.88
+          },
+          {
+            "index": 91,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.86,
+            "target_confidence": 99.86
+          },
+          {
+            "index": 92,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.88,
+            "target_confidence": 99.88
+          },
+          {
+            "index": 93,
+            "split": "test",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.65,
+            "target_confidence": 99.65
+          },
+          {
+            "index": 94,
+            "split": "val",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.59,
+            "target_confidence": 99.59
+          },
+          {
+            "index": 95,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.85,
+            "target_confidence": 99.85
+          }
+        ]
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 7,
+        "total_correct": 7,
+        "accuracy_all": 1.0,
+        "test_total": 1,
+        "test_correct": 1,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 91,
+            "split": "val",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.77,
+            "target_confidence": 98.77
+          },
+          {
+            "index": 92,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 99.0,
+            "target_confidence": 99.0
+          },
+          {
+            "index": 93,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.87,
+            "target_confidence": 98.87
+          },
+          {
+            "index": 94,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.9,
+            "target_confidence": 98.9
+          },
+          {
+            "index": 95,
+            "split": "test",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.91,
+            "target_confidence": 98.91
+          },
+          {
+            "index": 96,
+            "split": "val",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.59,
+            "target_confidence": 98.59
+          },
+          {
+            "index": 97,
+            "split": "train",
+            "predicted": "please",
+            "is_correct": true,
+            "confidence": 98.88,
+            "target_confidence": 98.88
+          }
+        ]
+      }
+    },
+    "food": {
+      "v2": {
+        "in_vocabulary": false,
+        "total_samples": 0,
+        "total_correct": 0,
+        "accuracy_all": null,
+        "test_total": 0,
+        "test_correct": 0,
+        "test_accuracy": null,
+        "samples": []
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 8,
+        "total_correct": 7,
+        "accuracy_all": 0.875,
+        "test_total": 1,
+        "test_correct": 1,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 195,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 96.46,
+            "target_confidence": 96.46
+          },
+          {
+            "index": 196,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 93.66,
+            "target_confidence": 93.66
+          },
+          {
+            "index": 197,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 93.54,
+            "target_confidence": 93.54
+          },
+          {
+            "index": 198,
+            "split": "val",
+            "predicted": "bad",
+            "is_correct": false,
+            "confidence": 24.36,
+            "target_confidence": 10.48
+          },
+          {
+            "index": 199,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 95.58,
+            "target_confidence": 95.58
+          },
+          {
+            "index": 200,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 92.06,
+            "target_confidence": 92.06
+          },
+          {
+            "index": 201,
+            "split": "train",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 95.7,
+            "target_confidence": 95.7
+          },
+          {
+            "index": 202,
+            "split": "test",
+            "predicted": "food",
+            "is_correct": true,
+            "confidence": 90.62,
+            "target_confidence": 90.62
+          }
+        ]
+      }
+    },
+    "hello": {
+      "v2": {
+        "in_vocabulary": false,
+        "total_samples": 0,
+        "total_correct": 0,
+        "accuracy_all": null,
+        "test_total": 0,
+        "test_correct": 0,
+        "test_accuracy": null,
+        "samples": []
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 6,
+        "total_correct": 6,
+        "accuracy_all": 1.0,
+        "test_total": 1,
+        "test_correct": 1,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 158,
+            "split": "val",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 91.09,
+            "target_confidence": 91.09
+          },
+          {
+            "index": 159,
+            "split": "train",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 92.59,
+            "target_confidence": 92.59
+          },
+          {
+            "index": 160,
+            "split": "train",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 98.09,
+            "target_confidence": 98.09
+          },
+          {
+            "index": 161,
+            "split": "train",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 95.76,
+            "target_confidence": 95.76
+          },
+          {
+            "index": 162,
+            "split": "test",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 91.77,
+            "target_confidence": 91.77
+          },
+          {
+            "index": 163,
+            "split": "train",
+            "predicted": "hello",
+            "is_correct": true,
+            "confidence": 96.83,
+            "target_confidence": 96.83
+          }
+        ]
+      }
+    },
+    "good": {
+      "v2": {
+        "in_vocabulary": false,
+        "total_samples": 0,
+        "total_correct": 0,
+        "accuracy_all": null,
+        "test_total": 0,
+        "test_correct": 0,
+        "test_accuracy": null,
+        "samples": []
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 10,
+        "total_correct": 4,
+        "accuracy_all": 0.4,
+        "test_total": 1,
+        "test_correct": 0,
+        "test_accuracy": 0.0,
+        "samples": [
+          {
+            "index": 164,
+            "split": "train",
+            "predicted": "thank_you",
+            "is_correct": false,
+            "confidence": 70.44,
+            "target_confidence": 24.97
+          },
+          {
+            "index": 165,
+            "split": "train",
+            "predicted": "thank_you",
+            "is_correct": false,
+            "confidence": 78.9,
+            "target_confidence": 15.18
+          },
+          {
+            "index": 166,
+            "split": "train",
+            "predicted": "good",
+            "is_correct": true,
+            "confidence": 72.34,
+            "target_confidence": 72.34
+          },
+          {
+            "index": 167,
+            "split": "val",
+            "predicted": "wait",
+            "is_correct": false,
+            "confidence": 54.31,
+            "target_confidence": 36.27
+          },
+          {
+            "index": 168,
+            "split": "val",
+            "predicted": "thank_you",
+            "is_correct": false,
+            "confidence": 72.81,
+            "target_confidence": 25.44
+          },
+          {
+            "index": 169,
+            "split": "train",
+            "predicted": "good",
+            "is_correct": true,
+            "confidence": 74.81,
+            "target_confidence": 74.81
+          },
+          {
+            "index": 170,
+            "split": "train",
+            "predicted": "good",
+            "is_correct": true,
+            "confidence": 72.55,
+            "target_confidence": 72.55
+          },
+          {
+            "index": 171,
+            "split": "train",
+            "predicted": "thank_you",
+            "is_correct": false,
+            "confidence": 56.96,
+            "target_confidence": 37.36
+          },
+          {
+            "index": 172,
+            "split": "train",
+            "predicted": "good",
+            "is_correct": true,
+            "confidence": 87.55,
+            "target_confidence": 87.55
+          },
+          {
+            "index": 173,
+            "split": "test",
+            "predicted": "thank_you",
+            "is_correct": false,
+            "confidence": 74.61,
+            "target_confidence": 15.76
+          }
+        ]
+      }
+    },
+    "bad": {
+      "v2": {
+        "in_vocabulary": false,
+        "total_samples": 0,
+        "total_correct": 0,
+        "accuracy_all": null,
+        "test_total": 0,
+        "test_correct": 0,
+        "test_accuracy": null,
+        "samples": []
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 10,
+        "total_correct": 10,
+        "accuracy_all": 1.0,
+        "test_total": 2,
+        "test_correct": 2,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 174,
+            "split": "test",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 72.12,
+            "target_confidence": 72.12
+          },
+          {
+            "index": 175,
+            "split": "test",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 94.89,
+            "target_confidence": 94.89
+          },
+          {
+            "index": 176,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 99.12,
+            "target_confidence": 99.12
+          },
+          {
+            "index": 177,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 99.18,
+            "target_confidence": 99.18
+          },
+          {
+            "index": 178,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 97.13,
+            "target_confidence": 97.13
+          },
+          {
+            "index": 179,
+            "split": "val",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 97.04,
+            "target_confidence": 97.04
+          },
+          {
+            "index": 180,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 98.25,
+            "target_confidence": 98.25
+          },
+          {
+            "index": 181,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 97.68,
+            "target_confidence": 97.68
+          },
+          {
+            "index": 182,
+            "split": "val",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 22.21,
+            "target_confidence": 22.21
+          },
+          {
+            "index": 183,
+            "split": "train",
+            "predicted": "bad",
+            "is_correct": true,
+            "confidence": 98.58,
+            "target_confidence": 98.58
+          }
+        ]
+      }
+    },
+    "water": {
+      "v2": {
+        "in_vocabulary": false,
+        "total_samples": 0,
+        "total_correct": 0,
+        "accuracy_all": null,
+        "test_total": 0,
+        "test_correct": 0,
+        "test_accuracy": null,
+        "samples": []
+      },
+      "v3": {
+        "in_vocabulary": true,
+        "total_samples": 11,
+        "total_correct": 10,
+        "accuracy_all": 0.9091,
+        "test_total": 2,
+        "test_correct": 2,
+        "test_accuracy": 1.0,
+        "samples": [
+          {
+            "index": 184,
+            "split": "test",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 79.53,
+            "target_confidence": 79.53
+          },
+          {
+            "index": 185,
+            "split": "test",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 79.07,
+            "target_confidence": 79.07
+          },
+          {
+            "index": 186,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 43.01,
+            "target_confidence": 43.01
+          },
+          {
+            "index": 187,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 82.74,
+            "target_confidence": 82.74
+          },
+          {
+            "index": 188,
+            "split": "val",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 73.93,
+            "target_confidence": 73.93
+          },
+          {
+            "index": 189,
+            "split": "train",
+            "predicted": "hello",
+            "is_correct": false,
+            "confidence": 54.88,
+            "target_confidence": 40.51
+          },
+          {
+            "index": 190,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 81.5,
+            "target_confidence": 81.5
+          },
+          {
+            "index": 191,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 82.54,
+            "target_confidence": 82.54
+          },
+          {
+            "index": 192,
+            "split": "val",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 74.27,
+            "target_confidence": 74.27
+          },
+          {
+            "index": 193,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 83.82,
+            "target_confidence": 83.82
+          },
+          {
+            "index": 194,
+            "split": "train",
+            "predicted": "water",
+            "is_correct": true,
+            "confidence": 83.82,
+            "target_confidence": 83.82
+          }
+        ]
+      }
+    }
+  },
+  "confusion_pairs_evaluation": {
+    "DOCTOR_vs_PAY": {
+      "doctor_samples_v2": 10,
+      "doctor_samples_v3": 11,
+      "pay_samples_v2": 6,
+      "pay_samples_v3": 6,
+      "v2": {
+        "doctor_predicted_pay": 1,
+        "pay_predicted_doctor": 1,
+        "doctor_accuracy_all": 0.9,
+        "pay_accuracy_all": 0.8333
+      },
+      "v3": {
+        "doctor_predicted_pay": 1,
+        "pay_predicted_doctor": 1,
+        "doctor_accuracy_all": 0.8182,
+        "pay_accuracy_all": 0.8333
+      }
+    },
+    "HELP_vs_MONEY": {
+      "help_samples": 9,
+      "money_samples": 8,
+      "v2_standard": {
+        "help_predicted_money": 0,
+        "money_predicted_help": 0,
+        "help_accuracy": 1.0,
+        "money_accuracy": 1.0
+      },
+      "v2_rotated_15deg": {
+        "help_predicted_money": 0,
+        "money_predicted_help": 0,
+        "help_accuracy": 1.0,
+        "money_accuracy": 0.875
+      },
+      "v3_standard": {
+        "help_predicted_money": 0,
+        "money_predicted_help": 0,
+        "help_accuracy": 1.0,
+        "money_accuracy": 1.0
+      },
+      "v3_rotated_15deg": {
+        "help_predicted_money": 1,
+        "money_predicted_help": 0,
+        "help_accuracy": 0.8889,
+        "money_accuracy": 0.875
+      }
+    }
+  },
+  "recommendation": {
+    "activate_v3_now": false,
+    "rationale": "While V3 successfully recognizes 4 of 5 new classes with high accuracy (85.71% on new-5 test subset) and runs with identical sub-millisecond CPU latency (0.70 ms), existing 17-class test accuracy dropped slightly from 80.77% (V2) to 76.92% (V3) due to an additional error on WHERE (misclassified as BATHROOM). Furthermore, GOOD suffers phonological confusion with THANK_YOU (40% total accuracy), and HELP under rotation shows 1 error in V3 compared to 0 in V2. Therefore, V3 must remain inactive pending physical webcam validation."
+  }
+}
